@@ -6,6 +6,7 @@ import { IThingStore, Thing } from "../domain";
 
 import * as signinCard from "./cards/signinCard.json"
 import { refreshCard } from "./cards/refreshCard";
+import { openTaskModuleCard } from "./cards/openTaskModuleCard";
 
 export interface BotActivityHandlerDependencies {
     thingStore: IThingStore,
@@ -17,9 +18,11 @@ const ACTIONNAME_HELP = "help"
 const ACTIONNAME_NEW_THING_FORM = "new thing"
 const ACTIONNAME_CREATE_NEW_THING = "create that new thing"
 const ACTIONNAME_SIGNIN = "signin"
+const ACTIONNAME_SHOW_TASK_MODULE = "show task module"
 
 const ACTIONNAME_SHOW_REFRESH = "show refresh"
 const INVOKE_REFRESH = "refreshCard"
+const INVOKE_TASK_MODULE = "openTaskModule"
 
 export class BotActivityHandler extends TeamsActivityHandler {
     constructor(private deps: BotActivityHandlerDependencies) {
@@ -27,10 +30,35 @@ export class BotActivityHandler extends TeamsActivityHandler {
         // Handle messages
         this.onMessage(async (context, next) => await this.handleMessagesAsync(context, next));
         // Handle invoke by bot action
-        this.onInvokeActivity = async (context) => await this.handeInvokeAsync(context)
+        this.onInvokeActivity = async (context) => await this.handleInvokeAsync(context)
     }
 
-    private async handeInvokeAsync(context: TurnContext): Promise<InvokeResponse> {
+    private async handleInvokeAsync(context: TurnContext): Promise<InvokeResponse> {
+        if (context.activity.name === "task/fetch") {
+            if (context.activity.value.data.module === INVOKE_TASK_MODULE) {
+                console.log("Returning task module")
+                return {
+                    status: 200,
+                    body: {
+                        "task": {
+                            "type": "continue",
+                            "value": {
+                                "title": "This is the task module title",
+                                "height": 500,
+                                "width": "medium",
+                                "url": process.env.BaseUrl + "/auth/index.html",
+                                "fallbackUrl": process.env.BaseUrl + "/auth/index.html"
+                            }
+                        }
+                    }
+                }
+            }
+
+            console.error(`Unsupported task/fetch: ${JSON.stringify(context.activity, null, 2)}`)
+            return {
+                status: 500
+            }
+        }
         if (context.activity.value.action.verb === INVOKE_REFRESH) {
             const member = await TeamsInfo.getMember(context, context.activity.from.id)
             return {
@@ -42,17 +70,18 @@ export class BotActivityHandler extends TeamsActivityHandler {
                 }
             }
         }
+        console.error(`Unsupported invoke: ${JSON.stringify(context.activity, null, 2)}`)
         return {
-            status: 200,
-            body: {
-                statusCode: 401,
-                type: "application/vnd.microsoft.activity.loginRequest",
-            }
+            status: 500
         }
     }
 
     private async handleMessagesAsync(context: TurnContext, nextAsync: () => Promise<void>) {
         TurnContext.removeRecipientMention(context.activity);
+        if (!context.activity.text && (!context.activity.value || !context.activity.value["text"])) {
+            console.error(`Missing text in ${JSON.stringify(context.activity, null, 2)}`)
+            return
+        }
         const text = (context.activity.text || context.activity.value["text"]).trim().toLowerCase()
         switch (text) {
             case ACTIONNAME_HELP:
@@ -70,10 +99,17 @@ export class BotActivityHandler extends TeamsActivityHandler {
             case ACTIONNAME_SHOW_REFRESH:
                 await this.showRefreshCardAsync(context)
                 break
+            case ACTIONNAME_SHOW_TASK_MODULE:
+                await this.showTaskModuleAsync(context)
+                break
             default:
                 await this.helpActivityAsync(context, text);
         }
         await nextAsync();
+    }
+    async showTaskModuleAsync(context: TurnContext) {
+        const card = CardFactory.adaptiveCard(openTaskModuleCard())
+        await context.sendActivity({ attachments: [card] })
     }
     async showRefreshCardAsync(context: TurnContext) {
         const member = await TeamsInfo.getMember(context, context.activity.from.id)

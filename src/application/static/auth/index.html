@@ -1,0 +1,53 @@
+<html>
+
+<head>
+  <script src='https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js'></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  Hello! <br />
+
+  <button id="authenticate">Authenticate</button>
+
+  <span id="user"></span>
+
+  <script>
+    microsoftTeams.initialize();
+    microsoftTeams.getContext((context) => {
+    });
+
+    const parseJwt = (jwt) => {
+      const parts = jwt.split(".")
+      return {
+        header: JSON.parse(atob(parts[0])),
+        payload: JSON.parse(atob(parts[1])),
+        signature: parts[2],
+      }
+    }
+
+    const authButton = document.getElementById("authenticate")
+    authButton.onclick = () => {
+      microsoftTeams.authentication.authenticate({
+        url: window.location.origin + "/auth/auth.html",
+        width: 600,
+        height: 535,
+        successCallback: function (result) {
+          const jwt = parseJwt(result.idToken)
+          userId = document.getElementById('user');
+          userId.innerHTML = `${result.result} You authenticated as ${jwt.payload.name}`;
+        },
+        failureCallback: function (reason) {
+          handleAuthError(reason);
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>
