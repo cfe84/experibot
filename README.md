@@ -6,6 +6,7 @@
 ```
 BotId=
 BotPassword=
+BaseUrl=
 ```
   - [x] Update botId
   - [x] Update botPassword
