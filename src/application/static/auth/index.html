@@ -1,6 +1,10 @@
 <html>
 
 <head>
+  <!--
+    See https://docs.microsoft.com/en-us/javascript/api/@microsoft/teams-js/context?view=msteams-client-js-latest
+    and https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/task-modules/task-modules-bots
+  -->
   <script src='https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js'></script>
   <style>
     body {
@@ -15,14 +19,23 @@
 
   <button id="authenticate">Authenticate to MSFT AAD</button>
   <button id="authenticateb2c">Authenticate to AAD B2C</button>
+  
+  <button id="close">Close</button>
 
   <span id="user"></span>
+
+  <button id="setCookie">Set localStorage</button>
+  <span id="cookieSpan"></span>
+
 
   <script>
     microsoftTeams.initialize();
     microsoftTeams.getContext((context) => {
       const authButton = document.getElementById("authenticate")
       const authButtonB2C = document.getElementById("authenticateb2c")
+      const close = document.getElementById("close")
+      const setCookieButton = document.getElementById("setCookie")
+      const cookieSpan = document.getElementById("cookieSpan")
       const auth = (tenantId, clientId) => () => {
         microsoftTeams.authentication.authenticate({
           url: `${window.location.origin}/auth/auth.html?tenantId=${tenantId}&clientId=${clientId}`,
@@ -40,6 +53,18 @@
       }
       authButton.onclick = auth(context.tid, context.clientId)
       authButtonB2C.onclick = auth("437426e6-c3c0-4806-8921-76bcdd4493c9", "0b0d52e1-edc0-41f2-87cc-5d2ef153e7b0")
+      close.onclick = () => {
+        // Task module closes on submitTask 
+        // https://stackoverflow.com/questions/62260918/ms-teams-taskmodule-close-the-window
+        microsoftTeams.tasks.submitTask(null)
+      }
+      setCookieButton.onclick = () => {
+        // Task module closes on submitTask 
+        // https://stackoverflow.com/questions/62260918/ms-teams-taskmodule-close-the-window
+        localStorage.setItem("myvalue", "Date was " + new Date().toISOString())
+        cookieSpan.innerHTML = "Cookie is set to: " + localStorage.getItem("myvalue")
+      }
+      cookieSpan.innerHTML = "Cookie is: " + localStorage.getItem("myvalue")
     });
 
     const parseJwt = (jwt) => {

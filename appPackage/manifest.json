@@ -42,6 +42,7 @@
     ],
     "validDomains": [
         "localhost:3000",
-        "*.ngrok.io"
+        "*.ngrok.io",
+        "rlay.feval.ca"
     ]
 }

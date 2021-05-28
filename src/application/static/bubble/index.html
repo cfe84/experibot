@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <!--
+    See https://docs.microsoft.com/en-us/javascript/api/@microsoft/teams-js/context?view=msteams-client-js-latest
+    and https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/task-modules/task-modules-bots
+  -->
+    <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        padding: 15px;
+      }
+    </style>
+  </head>
+
+  <body>
+    This is the bubble content, retrieved from the webapp.
+
+    <script>
+      microsoftTeams.initialize();
+      microsoftTeams.getContext(function (context) {
+        document.getElementsByTagName("body")[0].style.color =
+          context.theme !== "default" ? "white" : "black";
+      });
+    </script>
+  </body>
+</html>
