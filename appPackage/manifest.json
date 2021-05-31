@@ -1,48 +1,75 @@
 {
-    "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.8/MicrosoftTeams.schema.json",
-    "manifestVersion": "1.8",
-    "version": "1.0.0",
-    "id": "fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f",
-    "packageName": "com.template.bot.ts",
-    "developer": {
-        "name": "Teams App, Inc.",
-        "websiteUrl": "https://localhost:3000",
-        "privacyUrl": "https://localhost:3000/privacy",
-        "termsOfUseUrl": "https://localhost:3000/termsofuse"
-    },
-    "icons": {
-        "color": "color.png",
-        "outline": "outline.png"
-    },
-    "name": {
-        "short": "Experibot",
-        "full": "Experimental bot"
-    },
-    "description": {
-        "short": "Short description for Conversation Bot.",
-        "full": "Full description of Conversation Bot."
-    },
-    "accentColor": "#FFFFFF",
-    "bots": [
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.8/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.8",
+  "version": "1.0.0",
+  "id": "fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f",
+  "packageName": "com.template.bot.ts",
+  "developer": {
+    "name": "Teams App, Inc.",
+    "websiteUrl": "https://localhost:3000",
+    "privacyUrl": "https://localhost:3000/privacy",
+    "termsOfUseUrl": "https://localhost:3000/termsofuse"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "Experibot",
+    "full": "Experimental bot"
+  },
+  "description": {
+    "short": "Short description for Conversation Bot.",
+    "full": "Full description of Conversation Bot."
+  },
+  "accentColor": "#FFFFFF",
+  "bots": [
+    {
+      "botId": "fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f",
+      "scopes": ["personal", "groupchat", "team"],
+      "commandLists": [],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "composeExtensions": [
+    {
+      "botId": "fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f",
+      "commands": [
         {
-            "botId": "fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f",
-            "scopes": [
-                "personal",
-                "groupchat",
-                "team"
-            ],
-            "commandLists": [],
-            "supportsFiles": false,
-            "isNotificationOnly": false
+          "id": "demoAction",
+          "type": "action",
+          "context": ["compose"],
+          "description": "Command to run action to create a Card from Compose Box",
+          "title": "Demo card",
+          "fetchTask": true,
+          "taskInfo": {
+            "url": "https://rlay.feval.ca/bubble/"
+          },
+          "parameters": [
+            {
+              "name": "title",
+              "title": "Card title",
+              "description": "This is a demo action",
+              "inputType": "text"
+            },
+            {
+              "name": "subTitle",
+              "title": "Subtitle",
+              "description": "It has a subtitle",
+              "inputType": "text"
+            },
+            {
+              "name": "text",
+              "title": "Text",
+              "description": "Text for the card",
+              "inputType": "textarea"
+            }
+          ]
         }
-    ],
-    "permissions": [
-        "identity",
-        "messageTeamMembers"
-    ],
-    "validDomains": [
-        "localhost:3000",
-        "*.ngrok.io",
-        "rlay.feval.ca"
-    ]
+      ]
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": ["localhost:3000", "*.ngrok.io", "rlay.feval.ca"]
 }

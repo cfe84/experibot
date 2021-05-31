@@ -1,5 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
-import { ActivityFactory, InvokeResponse, TurnContext } from "botbuilder-core";
+import {
+  ActivityFactory,
+  InvokeResponse,
+  MessagingExtensionAction,
+  MessagingExtensionActionResponse,
+  TaskModuleRequest,
+  TaskModuleResponse,
+  TurnContext,
+} from "botbuilder-core";
 import {
   MessageFactory,
   TeamsActivityHandler,
@@ -12,22 +20,24 @@ import { IThingStore, Thing } from "../domain";
 import * as signinCard from "./cards/signinCard.json";
 import { refreshCard } from "./cards/refreshCard";
 import { openTaskModuleCard } from "./cards/openTaskModuleCard";
+import { messageExtensionActionCard } from "./cards/messageExtensionActionCard";
+import { ILogger } from "../domain/ILogger";
+import { confirmActionCard } from "./cards/confirmActionCard";
+import { helpCard } from "./cards/helpCard";
 
 export interface BotActivityHandlerDependencies {
   thingStore: IThingStore;
+  logger: ILogger;
 }
 
-const ARGUMENTNAME_THING_NAME = "question";
-const ARGUMENTNAME_CHOICE = "choice";
-const ACTIONNAME_HELP = "help";
-const ACTIONNAME_NEW_THING_FORM = "new thing";
-const ACTIONNAME_CREATE_NEW_THING = "create that new thing";
-const ACTIONNAME_SIGNIN = "signin";
-const ACTIONNAME_SHOW_TASK_MODULE = "show task module";
-const ACTIONNAME_SHOW_BUBBLE = "show bubble";
-const ACTIONNAME_SHOW_REFRESH = "show refresh";
+const Actions: { [key: string]: string } = {
+  HELP: "help",
+  SIGNIN: "signin",
+  SHOW_TASK_MODULE: "show task module",
+  SHOW_BUBBLE: "show bubble",
+  SHOW_REFRESH: "show refresh",
+};
 const INVOKE_REFRESH = "refreshCard";
-const INVOKE_TASK_MODULE = "openTaskModule";
 
 export class BotActivityHandler extends TeamsActivityHandler {
   constructor(private deps: BotActivityHandlerDependencies) {
@@ -37,42 +47,29 @@ export class BotActivityHandler extends TeamsActivityHandler {
       async (context, next) => await this.handleMessagesAsync(context, next)
     );
     // Handle invoke by bot action
-    this.onInvokeActivity = async (context) =>
-      await this.handleInvokeAsync(context);
+    this.onInvokeActivity = (context) => this.handleInvokeAsync(context);
   }
 
-  private async handleInvokeAsync(
+  /**
+   * Handles invoke types not currently supported by the teamsActivityHandler,
+   * such as the refresh
+   * @param context
+   * @returns
+   */
+  async handleInvokeAsync(context: TurnContext): Promise<InvokeResponse> {
+    this.deps.logger.debug(`Invoke of type `, context.activity.name);
+    if (context.activity.name === "adaptiveCard/action") {
+      return await this.handleAdaptiveCardAction(context);
+    }
+
+    return super.onInvokeActivity(context);
+  }
+
+  async handleAdaptiveCardAction(
     context: TurnContext
   ): Promise<InvokeResponse> {
-    if (context.activity.name === "task/fetch") {
-      if (context.activity.value.data.module === INVOKE_TASK_MODULE) {
-        console.log("Returning task module");
-        console.log(context.activity.from);
-        return {
-          status: 200,
-          body: {
-            task: {
-              type: "continue",
-              value: {
-                title: "This is the task module title",
-                height: 500,
-                width: "medium",
-                url: process.env.BaseUrl + "/auth/index.html",
-                fallbackUrl: process.env.BaseUrl + "/auth/index.html",
-              },
-            },
-          },
-        };
-      }
-
-      console.error(
-        `Unsupported task/fetch: ${JSON.stringify(context.activity, null, 2)}`
-      );
-      return {
-        status: 500,
-      };
-    }
-    if (context.activity.value.action.verb === INVOKE_REFRESH) {
+    if (context.activity?.value?.action?.verb === INVOKE_REFRESH) {
+      this.deps.logger.debug("Refreshing card");
       const member = await TeamsInfo.getMember(
         context,
         context.activity.from.id
@@ -88,11 +85,28 @@ export class BotActivityHandler extends TeamsActivityHandler {
         },
       };
     }
-    console.error(
-      `Unsupported invoke: ${JSON.stringify(context.activity, null, 2)}`
+    throw Error(
+      `Verb not implemented: ${context.activity.value?.action?.verb}`
     );
+  }
+
+  async handleTeamsTaskModuleFetch(
+    context: TurnContext,
+    taskModuleRequest: TaskModuleRequest
+  ): Promise<TaskModuleResponse> {
+    this.deps.logger.debug("Returning task module");
+    this.deps.logger.debug(`From: `, context.activity.from);
     return {
-      status: 500,
+      task: {
+        type: "continue",
+        value: {
+          title: "This is the task module title",
+          height: 500,
+          width: "medium",
+          url: process.env.BaseUrl + "/auth/index.html",
+          fallbackUrl: process.env.BaseUrl + "/auth/index.html",
+        },
+      },
     };
   }
 
@@ -105,8 +119,9 @@ export class BotActivityHandler extends TeamsActivityHandler {
       !context.activity.text &&
       (!context.activity.value || !context.activity.value["text"])
     ) {
-      console.error(
-        `Missing text in ${JSON.stringify(context.activity, null, 2)}`
+      this.deps.logger.error(
+        `Missing "context.activity.text" property in `,
+        context.activity
       );
       return;
     }
@@ -114,25 +129,19 @@ export class BotActivityHandler extends TeamsActivityHandler {
       .trim()
       .toLowerCase();
     switch (text) {
-      case ACTIONNAME_HELP:
+      case Actions.HELP:
         await this.helpActivityAsync(context, text);
         break;
-      case ACTIONNAME_NEW_THING_FORM:
-        await this.showNewThingFormAsync(context);
-        break;
-      case ACTIONNAME_CREATE_NEW_THING:
-        await this.createNewThingAsync(context);
-        break;
-      case ACTIONNAME_SIGNIN:
+      case Actions.SIGNIN:
         await this.signInAsync(context);
         break;
-      case ACTIONNAME_SHOW_REFRESH:
+      case Actions.SHOW_REFRESH:
         await this.showRefreshCardAsync(context);
         break;
-      case ACTIONNAME_SHOW_TASK_MODULE:
+      case Actions.SHOW_TASK_MODULE:
         await this.showTaskModuleAsync(context);
         break;
-      case ACTIONNAME_SHOW_BUBBLE:
+      case Actions.SHOW_BUBBLE:
         await this.showBubbleAsync(context);
         break;
       default:
@@ -193,107 +202,45 @@ export class BotActivityHandler extends TeamsActivityHandler {
   }
 
   private async helpActivityAsync(context: TurnContext, text: string) {
-    const card = CardFactory.adaptiveCard({
-      $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
-      type: "AdaptiveCard",
-      version: "1.0",
-      body: [
-        {
-          type: "TextBlock",
-          text: `Hi ${context.activity.from.name}. I received ${text}`,
-          wrap: true,
-        },
-        {
-          type: "ActionSet",
-          separator: "true",
-          actions: [
-            {
-              type: "Action.Submit",
-              title: "Create a new thing",
-              data: {
-                text: ACTIONNAME_NEW_THING_FORM,
-              },
-            },
-          ],
-        },
-      ],
-    });
-
+    const card = CardFactory.adaptiveCard(helpCard(Actions, text));
     await context.sendActivity({ attachments: [card] });
   }
 
-  private async showNewThingFormAsync(context: TurnContext) {
-    const card = CardFactory.adaptiveCard({
-      $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
-      type: "AdaptiveCard",
-      version: "1.0",
-      body: [
-        {
-          type: "TextBlock",
-          text: `Create a new thing`,
-          wrap: true,
+  async handleTeamsMessagingExtensionFetchTask(
+    context: TurnContext,
+    action: MessagingExtensionAction
+  ): Promise<MessagingExtensionActionResponse> {
+    this.deps.logger.debug(`Received fetch from messaging extension action`);
+    return {
+      task: {
+        type: "continue",
+        value: {
+          title: "This is the configuration title",
+          height: 250,
+          width: 250,
+          card: CardFactory.adaptiveCard(messageExtensionActionCard()),
         },
-        {
-          type: "Input.Text",
-          id: ARGUMENTNAME_THING_NAME,
-          placeholder: `Thing name`,
-        },
-        {
-          type: "ActionSet",
-          separator: "true",
-          actions: [
-            {
-              type: "Action.Submit",
-              title: "Create",
-              data: {
-                text: ACTIONNAME_CREATE_NEW_THING,
-              },
-            },
-          ],
-        },
-      ],
-    });
-
-    await context.sendActivity({ attachments: [card] });
-  }
-
-  private async createNewThingAsync(context: TurnContext) {
-    const thingName = context.activity.value[ARGUMENTNAME_THING_NAME];
-    const choices = Object.keys(context.activity.value)
-      .map((key) => {
-        if (key.substr(0, 6) === ARGUMENTNAME_CHOICE) {
-          return context.activity.value[key];
-        }
-        return "";
-      })
-      .filter((entry) => entry !== "");
-    const thing: Thing = {
-      id: uuidv4(),
-      name: thingName,
+      },
     };
-    await this.deps.thingStore.saveThingAsync(thing);
-    const things = await this.deps.thingStore.getThingsAsync();
+  }
 
-    const card = CardFactory.adaptiveCard({
-      $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
-      type: "AdaptiveCard",
-      version: "1.0",
-      body: [
-        {
-          type: "TextBlock",
-          text: `Created thing ${thing.id}. Things are now: ${things
-            .map((thing) => thing.name)
-            .join(", ")}`,
-          wrap: true,
-        },
-        {
-          type: "ActionSet",
-          separator: "true",
-          actions: [],
-        },
-      ],
-    });
-
-    await context.sendActivity({ attachments: [card] });
+  async handleTeamsMessagingExtensionSubmitAction(
+    context: TurnContext,
+    action: MessagingExtensionAction
+  ): Promise<MessagingExtensionActionResponse> {
+    this.deps.logger.debug(`Received messaging extension submit`);
+    this.deps.logger.debug(
+      `commandId: ${action.commandId}, data: `,
+      action.data
+    );
+    return {
+      composeExtension: {
+        type: "result",
+        attachmentLayout: "list",
+        attachments: [
+          CardFactory.adaptiveCard(confirmActionCard(action.data.theValue)),
+        ],
+      },
+    };
   }
 }
