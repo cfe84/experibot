@@ -53,7 +53,7 @@ server.use(express.static(staticContentPath));
 server.post("/api/messages", (req, res) => {
   try {
     adapter.processActivity(req, res, async (context: TurnContext) => {
-      logger.debug(`Message: `, JSON.stringify(req.body, null, 2));
+      // logger.debug(`Message: `, JSON.stringify(req.body, null, 2));
       // Process bot activity
       await botActivityHandler.run(context);
     });

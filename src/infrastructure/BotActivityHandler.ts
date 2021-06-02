@@ -58,6 +58,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
    */
   async handleInvokeAsync(context: TurnContext): Promise<InvokeResponse> {
     this.deps.logger.debug(`Invoke of type `, context.activity.name);
+    this.deps.logger.debug(`From: `, context.activity.from);
     if (context.activity.name === "adaptiveCard/action") {
       return await this.handleAdaptiveCardAction(context);
     }
