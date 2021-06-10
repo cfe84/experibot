@@ -24,6 +24,7 @@ import { messageExtensionActionCard } from "./cards/messageExtensionActionCard";
 import { ILogger } from "../domain/ILogger";
 import { confirmActionCard } from "./cards/confirmActionCard";
 import { helpCard } from "./cards/helpCard";
+import { taskModuleCard } from "./cards/taskModuleCard";
 
 export interface BotActivityHandlerDependencies {
   thingStore: IThingStore;
@@ -58,12 +59,18 @@ export class BotActivityHandler extends TeamsActivityHandler {
    */
   async handleInvokeAsync(context: TurnContext): Promise<InvokeResponse> {
     this.deps.logger.debug(`Invoke of type `, context.activity.name);
-    this.deps.logger.debug(`From: `, context.activity.from);
     if (context.activity.name === "adaptiveCard/action") {
       return await this.handleAdaptiveCardAction(context);
     }
 
-    return super.onInvokeActivity(context);
+    try {
+      return super.onInvokeActivity(context);
+    } catch (error) {
+      this.deps.logger.error(error);
+      return {
+        status: 500,
+      };
+    }
   }
 
   async handleAdaptiveCardAction(
@@ -91,12 +98,61 @@ export class BotActivityHandler extends TeamsActivityHandler {
     );
   }
 
+  async handleTeamsTaskModuleSubmit(
+    context: TurnContext,
+    taskModuleRequest: TaskModuleRequest
+  ): Promise<TaskModuleResponse> {
+    this.deps.logger.debug(
+      `Task module was submitted with action: ${taskModuleRequest.data.button}`
+    );
+    const i = taskModuleRequest.data.i;
+    if (taskModuleRequest.data?.button === "close") {
+      // context.sendActivity(
+      //   CardFactory.adaptiveCard(
+      //     confirmActionCard(taskModuleRequest.data?.theValue)
+      //   )
+      // );
+      return {
+        task: { type: "message", value: taskModuleRequest.data.theValue },
+      };
+    } else {
+      // If you clicked on continue, display another task module.
+      return {
+        task: {
+          type: "continue",
+          value: {
+            title: "This is the task module title",
+            height: 500,
+            width: "medium",
+            card: CardFactory.adaptiveCard(taskModuleCard(i + 1)),
+          },
+        },
+      };
+    }
+  }
+
   async handleTeamsTaskModuleFetch(
     context: TurnContext,
     taskModuleRequest: TaskModuleRequest
   ): Promise<TaskModuleResponse> {
-    this.deps.logger.debug("Returning task module");
-    this.deps.logger.debug(`From: `, context.activity.from);
+    this.deps.logger.debug(
+      "Returning task module of type",
+      taskModuleRequest.data.module
+    );
+    if (taskModuleRequest.data?.module === "webapp") {
+      return {
+        task: {
+          type: "continue",
+          value: {
+            title: "This is the task module title",
+            height: 500,
+            width: "medium",
+            url: process.env.BaseUrl + "/auth/index.html",
+            fallbackUrl: process.env.BaseUrl + "/auth/index.html",
+          },
+        },
+      };
+    }
     return {
       task: {
         type: "continue",
@@ -104,8 +160,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
           title: "This is the task module title",
           height: 500,
           width: "medium",
-          url: process.env.BaseUrl + "/auth/index.html",
-          fallbackUrl: process.env.BaseUrl + "/auth/index.html",
+          card: CardFactory.adaptiveCard(taskModuleCard(1)),
         },
       },
     };
