@@ -4,6 +4,7 @@ import { BotActivityHandler } from "../infrastructure/BotActivityHandler";
 import { MemoryStore } from "../infrastructure/MemoryStore";
 import path = require("path");
 import { ConsoleLogger, LogLevel } from "../infrastructure/ConsoleLogger";
+import { MSAMapping } from "../domain/MSAMapping";
 
 require("dotenv").config();
 if (!process.env.BotId || !process.env.BotPassword) {
@@ -48,6 +49,14 @@ server.listen(port, () => console.log(`Listening at http://localhost:${port}`));
 const staticContentPath = path.join(__dirname, "static");
 logger.debug(`Using static content in `, staticContentPath);
 server.use(express.static(staticContentPath));
+server.use(express.json());
+
+server.post("/api/user", (req, res) => {
+  logger.debug(req.body);
+  const mapping = req.body as MSAMapping;
+  botActivityHandler.addMSAMapping(mapping.userid, mapping.msa);
+  res.end();
+});
 
 // Listen for incoming requests.
 server.post("/api/messages", (req, res) => {

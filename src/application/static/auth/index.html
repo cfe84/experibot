@@ -16,8 +16,10 @@
   <body>
     <p>
       <h2>User information</h2>
-      Id: <span id="userId"></span><br/>
-      Name: <span id="userName"></span>
+      context.userObjectId: <span id="teamsUserId"></span><br/>
+      context.userPrincipalName: <span id="userName"></span>
+      backend activity.from.id: <span id="userId"></span><br/>
+      msa: <span id="msa"></span><br/>
     </p>
     <p>
       <h2>Authentication</h2>
@@ -32,6 +34,22 @@
     <button id="close">Close</button>
 
     <script>
+      const getQueryParameters = () => {
+        const queryParamsString = window.location.search.substr(1);
+        if (queryParamsString === undefined) {
+          return null;
+        }
+        const components = queryParamsString.split("&");
+        const res = {};
+        components.forEach((component) => {
+          const splat = component.split("=", 2);
+          res[splat[0]] = decodeURIComponent(splat[1]);
+        });
+        return res;
+      };
+
+      const queryParameters = getQueryParameters()
+
       const parseJwt = (jwt) => {
         const parts = jwt.split(".");
         return {
@@ -40,6 +58,23 @@
           signature: parts[2],
         };
       };
+
+      const callBackendAsync = (method, url, body, contentType) => {
+        return new Promise((resolve, reject) => {
+          const request = new XMLHttpRequest()
+          request.onreadystatechange = function() { 
+            if (this.readyState === 4) {
+              resolve()
+            }
+          }
+          request.open(method, url, true)
+          if (contentType) {
+            request.setRequestHeader("content-type", contentType)
+          }
+          request.send(body)
+        })
+      }
+
       const attachAuthButtons = (context) => {
         const authButton = document.getElementById("authenticate");
         const authButtonB2C = document.getElementById("authenticateb2c");
@@ -50,8 +85,9 @@
             height: 535,
             successCallback: function (result) {
               const jwt = parseJwt(result.idToken);
-              userId = document.getElementById("user");
-              userId.innerHTML = `${result.result} You authenticated as ${jwt.payload.name}`;
+              msa = document.getElementById("msa");
+              msa.innerHTML = jwt.payload.name;
+              callBackendAsync("POST", "/api/user", JSON.stringify({msa: jwt.payload.email, userid: queryParameters["userid"] }), "application/json")
             },
             failureCallback: function (reason) {
               handleAuthError(reason);
@@ -92,16 +128,19 @@
       };
 
       const fillUserFields = (context) => {
+        const teamsUserId = document.getElementById("teamsUserId")
         const userId = document.getElementById("userId")
         const userName = document.getElementById("userName")
-        userId.innerHTML = context.userObjectId
+        teamsUserId.innerHTML = context.userObjectId
         userName.innerHTML = context.userPrincipalName
+        userId.innerHTML = queryParameters["userid"]
       }
 
       microsoftTeams.initialize(() => {
         microsoftTeams.getContext((context) => {
           attachAuthButtons(context);
           fillUserFields(context);
+          console.log(JSON.stringify(context, null, 2))
       });
       });
       attachCloseButton();

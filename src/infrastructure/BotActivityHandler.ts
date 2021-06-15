@@ -41,6 +41,10 @@ const Actions: { [key: string]: string } = {
 const INVOKE_REFRESH = "refreshCard";
 
 export class BotActivityHandler extends TeamsActivityHandler {
+  private userMSAMapping: {
+    [userId: string]: string;
+  } = {};
+
   constructor(private deps: BotActivityHandlerDependencies) {
     super();
     // Handle messages
@@ -51,6 +55,10 @@ export class BotActivityHandler extends TeamsActivityHandler {
     this.onInvokeActivity = (context) => this.handleInvokeAsync(context);
   }
 
+  addMSAMapping(userId: string, msa: string) {
+    this.userMSAMapping[userId] = msa;
+  }
+
   /**
    * Handles invoke types not currently supported by the teamsActivityHandler,
    * such as the refresh
@@ -59,6 +67,12 @@ export class BotActivityHandler extends TeamsActivityHandler {
    */
   async handleInvokeAsync(context: TurnContext): Promise<InvokeResponse> {
     this.deps.logger.debug(`Invoke of type `, context.activity.name);
+
+    const user = this.userMSAMapping[context.activity.from?.id];
+    if (user) {
+      this.deps.logger.debug(`Anonymous user is authenticated as ${user}`);
+    }
+
     if (context.activity.name === "adaptiveCard/action") {
       return await this.handleAdaptiveCardAction(context);
     }
@@ -147,7 +161,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
             title: "This is the task module title",
             height: 500,
             width: "medium",
-            url: process.env.BaseUrl + "/auth/index.html",
+            url: `${process.env.BaseUrl}/auth/index.html?userid=${context.activity?.from?.id}`,
             fallbackUrl: process.env.BaseUrl + "/auth/index.html",
           },
         },
@@ -212,7 +226,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
     replyActivity.channelData = {
       notification: {
         alertInMeeting: true,
-        externalResourceUrl: `https://teams.microsoft.com/l/bubble/${process.env.BotId}?url=${url}/bubble&height=300&width=500&title=Bubbleeee&completionBotId=${process.env.BotId}`,
+        externalResourceUrl: `https://teams.microsoft.com/l/bubble/${process.env.BotId}?url=${url}/meetingPortal&height=300&width=500&title=Payment&completionBotId=${process.env.BotId}`,
       },
     };
     await context.sendActivity(replyActivity);
@@ -237,24 +251,6 @@ export class BotActivityHandler extends TeamsActivityHandler {
       signinCard,
     });
     await context.sendActivity({ attachments: [card] });
-  }
-
-  /**
-   * Say hello and @ mention the current user.
-   */
-  private async sendPollActivityAsync(context: TurnContext) {
-    const TextEncoder = require("html-entities").XmlEntities;
-
-    const mention = {
-      mentioned: context.activity.from,
-      text: `<at>${new TextEncoder().encode(context.activity.from.name)}</at>`,
-      type: "mention",
-    };
-
-    const replyActivity = MessageFactory.text(`Hi ${mention.text}`);
-    replyActivity.entities = [mention];
-
-    await context.sendActivity(replyActivity);
   }
 
   private async helpActivityAsync(context: TurnContext, text: string) {
