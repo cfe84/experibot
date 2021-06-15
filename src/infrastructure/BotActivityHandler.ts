@@ -40,7 +40,7 @@ const Actions: { [key: string]: string } = {
   SHOW_TASK_MODULE: "show task module",
   SHOW_BUBBLE: "show bubble",
   SHOW_REFRESH: "show refresh",
-  CONFIRM_ANONYMOUS_IDENTITY: "confirm anonymous identity",
+  CONFIRM_ANONYMOUS_IDENTITY: "confirm identity",
 };
 const INVOKE_REFRESH = "refreshCard";
 
