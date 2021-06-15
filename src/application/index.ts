@@ -4,7 +4,9 @@ import { BotActivityHandler } from "../infrastructure/BotActivityHandler";
 import { MemoryStore } from "../infrastructure/MemoryStore";
 import path = require("path");
 import { ConsoleLogger, LogLevel } from "../infrastructure/ConsoleLogger";
-import { MSAMapping } from "../domain/MSAMapping";
+import { CodeExchange as CodeExchange } from "../domain/CodeExchange";
+import { AADAuthenticator } from "../infrastructure/AADAuthenticator";
+import { IdentityManager } from "../domain/IdentityManager";
 
 require("dotenv").config();
 if (!process.env.BotId || !process.env.BotPassword) {
@@ -38,9 +40,17 @@ const logger = new ConsoleLogger(
     ? LogLevel.Debug
     : LogLevel.Log
 );
+const authenticator = new AADAuthenticator(
+  "437426e6-c3c0-4806-8921-76bcdd4493c9",
+  "0b0d52e1-edc0-41f2-87cc-5d2ef153e7b0",
+  process.env["AADClientSecret"] as string
+);
+const identityManager = new IdentityManager({ authenticator });
+
 const botActivityHandler = new BotActivityHandler({
   thingStore: store,
   logger,
+  identityManager,
 });
 const server = express();
 const port = process.env.port || process.env.PORT || 3978;
@@ -51,11 +61,18 @@ logger.debug(`Using static content in `, staticContentPath);
 server.use(express.static(staticContentPath));
 server.use(express.json());
 
-server.post("/api/user", (req, res) => {
-  logger.debug(req.body);
-  const mapping = req.body as MSAMapping;
-  botActivityHandler.addMSAMapping(mapping.userid, mapping.msa);
-  res.end();
+server.post("/api/completeAuth", (req, res) => {
+  const mapping = req.body as CodeExchange;
+  identityManager
+    .exchangeNonceToIdentityAsync(
+      mapping.nonce,
+      mapping.code,
+      mapping.callbackUrl
+    )
+    .then((msa) => {
+      res.send(msa);
+      res.end();
+    });
 });
 
 // Listen for incoming requests.

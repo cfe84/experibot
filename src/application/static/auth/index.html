@@ -64,7 +64,7 @@
           const request = new XMLHttpRequest()
           request.onreadystatechange = function() { 
             if (this.readyState === 4) {
-              resolve()
+              resolve(request.responseText)
             }
           }
           request.open(method, url, true)
@@ -84,10 +84,18 @@
             width: 600,
             height: 535,
             successCallback: function (result) {
-              const jwt = parseJwt(result.idToken);
+              //const jwt = parseJwt(result.idToken);
+              const code = result.code;
               msa = document.getElementById("msa");
-              msa.innerHTML = jwt.payload.name;
-              callBackendAsync("POST", "/api/user", JSON.stringify({msa: jwt.payload.email, userid: queryParameters["userid"] }), "application/json")
+              msa.innerHTML = "Exchanging code..."; // jwt.payload.name;
+              const mapping = {
+                code, 
+                nonce: queryParameters["nonce"],
+                callbackUrl:window.location.origin + "/auth/authSuccess.html"
+              }
+              callBackendAsync("POST", "/api/completeAuth", JSON.stringify(mapping), "application/json").then((res) => {
+                msa.innerHTML = res
+              })
             },
             failureCallback: function (reason) {
               handleAuthError(reason);

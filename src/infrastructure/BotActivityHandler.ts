@@ -26,10 +26,12 @@ import { confirmActionCard } from "./cards/confirmActionCard";
 import { helpCard } from "./cards/helpCard";
 import { taskModuleCard } from "./cards/taskModuleCard";
 import { identityCard } from "./cards/identityCard";
+import { IdentityManager } from "../domain/IdentityManager";
 
 export interface BotActivityHandlerDependencies {
   thingStore: IThingStore;
   logger: ILogger;
+  identityManager: IdentityManager;
 }
 
 const Actions: { [key: string]: string } = {
@@ -43,10 +45,6 @@ const Actions: { [key: string]: string } = {
 const INVOKE_REFRESH = "refreshCard";
 
 export class BotActivityHandler extends TeamsActivityHandler {
-  private userMSAMapping: {
-    [userId: string]: string;
-  } = {};
-
   constructor(private deps: BotActivityHandlerDependencies) {
     super();
     // Handle messages
@@ -57,10 +55,6 @@ export class BotActivityHandler extends TeamsActivityHandler {
     this.onInvokeActivity = (context) => this.handleInvokeAsync(context);
   }
 
-  addMSAMapping(userId: string, msa: string) {
-    this.userMSAMapping[userId] = msa;
-  }
-
   /**
    * Handles invoke types not currently supported by the teamsActivityHandler,
    * such as the refresh
@@ -69,11 +63,6 @@ export class BotActivityHandler extends TeamsActivityHandler {
    */
   async handleInvokeAsync(context: TurnContext): Promise<InvokeResponse> {
     this.deps.logger.debug(`Invoke of type `, context.activity.name);
-
-    const user = this.userMSAMapping[context.activity.from?.id];
-    if (user) {
-      this.deps.logger.debug(`Anonymous user is authenticated as ${user}`);
-    }
 
     if (context.activity.name === "adaptiveCard/action") {
       return await this.handleAdaptiveCardAction(context);
@@ -156,6 +145,9 @@ export class BotActivityHandler extends TeamsActivityHandler {
       taskModuleRequest.data.module
     );
     if (taskModuleRequest.data?.module === "webapp") {
+      const nonce = this.deps.identityManager.generateNonce(
+        context.activity?.from?.id
+      );
       return {
         task: {
           type: "continue",
@@ -163,7 +155,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
             title: "This is the task module title",
             height: 500,
             width: "medium",
-            url: `${process.env.BaseUrl}/auth/index.html?userid=${context.activity?.from?.id}`,
+            url: `${process.env.BaseUrl}/auth/index.html?userid=${context.activity?.from?.id}&nonce=${nonce}`,
             fallbackUrl: process.env.BaseUrl + "/auth/index.html",
           },
         },
@@ -226,7 +218,9 @@ export class BotActivityHandler extends TeamsActivityHandler {
   }
   async confirmAnonymousIdentityAsync(context: TurnContext) {
     const userId = context.activity.from.id;
-    const msa = this.userMSAMapping[userId] || "No MSA mapping found";
+    const msa =
+      this.deps.identityManager.getIdentityFromUserId(userId) ||
+      "No MSA mapping found";
     const card = CardFactory.adaptiveCard(identityCard(msa, userId));
     await context.sendActivity({ attachments: [card] });
   }
