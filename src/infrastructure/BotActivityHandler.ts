@@ -25,6 +25,7 @@ import { ILogger } from "../domain/ILogger";
 import { confirmActionCard } from "./cards/confirmActionCard";
 import { helpCard } from "./cards/helpCard";
 import { taskModuleCard } from "./cards/taskModuleCard";
+import { identityCard } from "./cards/identityCard";
 
 export interface BotActivityHandlerDependencies {
   thingStore: IThingStore;
@@ -37,6 +38,7 @@ const Actions: { [key: string]: string } = {
   SHOW_TASK_MODULE: "show task module",
   SHOW_BUBBLE: "show bubble",
   SHOW_REFRESH: "show refresh",
+  CONFIRM_ANONYMOUS_IDENTITY: "confirm anonymous identity",
 };
 const INVOKE_REFRESH = "refreshCard";
 
@@ -214,10 +216,19 @@ export class BotActivityHandler extends TeamsActivityHandler {
       case Actions.SHOW_BUBBLE:
         await this.showBubbleAsync(context);
         break;
+      case Actions.CONFIRM_ANONYMOUS_IDENTITY:
+        await this.confirmAnonymousIdentityAsync(context);
+        break;
       default:
         await this.helpActivityAsync(context, text);
     }
     await nextAsync();
+  }
+  async confirmAnonymousIdentityAsync(context: TurnContext) {
+    const userId = context.activity.from.id;
+    const msa = this.userMSAMapping[userId] || "No MSA mapping found";
+    const card = CardFactory.adaptiveCard(identityCard(msa, userId));
+    await context.sendActivity({ attachments: [card] });
   }
 
   async showBubbleAsync(context: TurnContext) {

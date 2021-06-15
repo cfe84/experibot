@@ -14,7 +14,9 @@
   </head>
 
   <body>
-    This is the bubble content, retrieved from the webapp.
+    You have been charged for $125. Please pay.
+
+    <button id="close">Pay</button>
 
     <script>
       microsoftTeams.initialize();
@@ -22,6 +24,15 @@
         document.getElementsByTagName("body")[0].style.color =
           context.theme !== "default" ? "white" : "black";
       });
+      const attachCloseButton = () => {
+        const close = document.getElementById("close");
+        close.onclick = () => {
+          // Task module closes on submitTask
+          // https://stackoverflow.com/questions/62260918/ms-teams-taskmodule-close-the-window
+          microsoftTeams.tasks.submitTask(null);
+        };
+      };
+      attachCloseButton();
     </script>
   </body>
 </html>

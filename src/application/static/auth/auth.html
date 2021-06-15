@@ -1,56 +1,61 @@
 <html>
+  <head>
+    <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        padding: 15px;
+      }
+    </style>
+  </head>
 
-<head>
-  <script src='https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js'></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 15px;
-    }
-  </style>
-</head>
-
-<body>
-  You will be redirected soon
-  <span id="error"></span>
-  <script>
-    const errorElt = document.getElementById("error")
-    const toQueryString = (obj) => {
-      return Object.keys(obj).map(prop => `${prop}=${encodeURIComponent(obj[prop])}`).join("&")
-    }
-    const getQueryParameters = () => {
-      const queryParamsString = window.location.search.substring(1);
-      const components = queryParamsString.split("&")
-      const res = {}
-      components.forEach(component => {
-        const splat = component.split("=", 2)
-        res[splat[0]] = decodeURIComponent(splat[1])
-      })
-      return res
-    }
-    const inputQueryParams = getQueryParameters()
-    try {
-      // Generate random state string and store it, so we can verify it in the callback
-      let state = `${Math.random()}`; // _guid() is a helper function in the sample
-      localStorage.setItem("simple.state", state);
-      localStorage.removeItem("simple.error");
-      // Go to the Azure AD authorization endpoint
-      let queryParams = {
-        client_id: inputQueryParams.clientId,
-        response_type: "id_token token",
-        response_mode: "fragment",
-        scope: "https://graph.microsoft.com/User.Read openid profile email",
-        redirect_uri: window.location.origin + "/auth/authSuccess.html",
-        nonce: `${Math.random()}`,
-        state: state
+  <body>
+    Query this page with query params:
+    ?tenantId=${tenantId}&clientId=${clientId}<br />
+    You will be redirected soon
+    <span id="error"></span>
+    <script>
+      const errorElt = document.getElementById("error");
+      const toQueryString = (obj) => {
+        return Object.keys(obj)
+          .map((prop) => `${prop}=${encodeURIComponent(obj[prop])}`)
+          .join("&");
       };
-      let authorizeEndpoint = "https://login.microsoftonline.com/" + inputQueryParams.tenantId + "/oauth2/v2.0/authorize?" + toQueryString(queryParams);
-      window.location.assign(authorizeEndpoint)
-    } catch (err) {
-      errorElt.innerHTML = err.message
-    }
-
-  </script>
-</body>
-
+      const getQueryParameters = () => {
+        const queryParamsString = window.location.search.substring(1);
+        const components = queryParamsString.split("&");
+        const res = {};
+        components.forEach((component) => {
+          const splat = component.split("=", 2);
+          res[splat[0]] = decodeURIComponent(splat[1]);
+        });
+        return res;
+      };
+      const inputQueryParams = getQueryParameters();
+      try {
+        // Generate random state string and store it, so we can verify it in the callback
+        let state = `${Math.random()}`; // _guid() is a helper function in the sample
+        localStorage.setItem("simple.state", state);
+        localStorage.removeItem("simple.error");
+        // Go to the Azure AD authorization endpoint
+        let queryParams = {
+          client_id: inputQueryParams.clientId,
+          response_type: "id_token token",
+          response_mode: "fragment",
+          scope: "https://graph.microsoft.com/User.Read openid profile email",
+          redirect_uri: window.location.origin + "/auth/authSuccess.html",
+          nonce: `${Math.random()}`,
+          state: state,
+        };
+        let authorizeEndpoint =
+          "https://login.microsoftonline.com/" +
+          inputQueryParams.tenantId +
+          "/oauth2/v2.0/authorize?" +
+          toQueryString(queryParams);
+        window.location.assign(authorizeEndpoint);
+      } catch (err) {
+        errorElt.innerHTML = err.message;
+      }
+    </script>
+  </body>
 </html>
