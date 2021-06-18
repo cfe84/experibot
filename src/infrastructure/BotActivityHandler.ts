@@ -14,8 +14,7 @@ import {
   CardFactory,
   TeamsInfo,
 } from "botbuilder";
-import {} from "botbuilder-dialogs";
-import { IThingStore, Thing } from "../domain";
+import { } from "botbuilder-dialogs";
 
 import * as signinCard from "./cards/signinCard.json";
 import { refreshCard } from "./cards/refreshCard";
@@ -27,24 +26,28 @@ import { helpCard } from "./cards/helpCard";
 import { taskModuleCard } from "./cards/taskModuleCard";
 import { identityCard } from "./cards/identityCard";
 import { IdentityManager } from "../domain/IdentityManager";
+import { ActivityHandler } from "./handlers/ActivityHandler";
 
 export interface BotActivityHandlerDependencies {
-  thingStore: IThingStore;
   logger: ILogger;
   identityManager: IdentityManager;
 }
 
 const Actions: { [key: string]: string } = {
-  HELP: "help",
   SIGNIN: "signin",
   SHOW_TASK_MODULE: "show task module",
   SHOW_BUBBLE: "show bubble",
   SHOW_REFRESH: "show refresh",
+  START_ACTIVITY: "start activity",
   CONFIRM_ANONYMOUS_IDENTITY: "confirm identity",
+  HELP: "help",
 };
+const COMPLETE_ACTIVITY = "complete activity"
 const INVOKE_REFRESH = "refreshCard";
+const INVOKE_START_ACTIVITY = "startActivity";
 
 export class BotActivityHandler extends TeamsActivityHandler {
+  private activityHandler: ActivityHandler
   constructor(private deps: BotActivityHandlerDependencies) {
     super();
     // Handle messages
@@ -53,6 +56,8 @@ export class BotActivityHandler extends TeamsActivityHandler {
     );
     // Handle invoke by bot action
     this.onInvokeActivity = (context) => this.handleInvokeAsync(context);
+
+    this.activityHandler = new ActivityHandler(deps)
   }
 
   /**
@@ -78,9 +83,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
     }
   }
 
-  async handleAdaptiveCardAction(
-    context: TurnContext
-  ): Promise<InvokeResponse> {
+  async handleAdaptiveCardAction(context: TurnContext): Promise<InvokeResponse> {
     if (context.activity?.value?.action?.verb === INVOKE_REFRESH) {
       this.deps.logger.debug("Refreshing card");
       const member = await TeamsInfo.getMember(
@@ -97,6 +100,8 @@ export class BotActivityHandler extends TeamsActivityHandler {
           ]),
         },
       };
+    } else if (context.activity?.value?.action?.verb === INVOKE_START_ACTIVITY) {
+      return await this.activityHandler.handleRefreshAsync(context)
     }
     throw Error(
       `Verb not implemented: ${context.activity.value?.action?.verb}`
@@ -211,11 +216,20 @@ export class BotActivityHandler extends TeamsActivityHandler {
       case Actions.CONFIRM_ANONYMOUS_IDENTITY:
         await this.confirmAnonymousIdentityAsync(context);
         break;
+      case Actions.START_ACTIVITY:
+        await this.activityHandler.startActivityAsync(context);
+        break;
+      case COMPLETE_ACTIVITY:
+        await this.activityHandler.completeActivityAsync(context)
+        break
       default:
         await this.helpActivityAsync(context, text);
     }
     await nextAsync();
   }
+
+
+
   async confirmAnonymousIdentityAsync(context: TurnContext) {
     const userId = context.activity.from.id;
     const msa =
@@ -290,14 +304,19 @@ export class BotActivityHandler extends TeamsActivityHandler {
       `commandId: ${action.commandId}, data: `,
       action.data
     );
-    return {
-      composeExtension: {
-        type: "result",
-        attachmentLayout: "list",
-        attachments: [
-          CardFactory.adaptiveCard(confirmActionCard(action.data.theValue)),
-        ],
-      },
-    };
+    if (action.commandId === "me.submit") {
+      return {
+        composeExtension: {
+          type: "result",
+          attachmentLayout: "list",
+          attachments: [
+            CardFactory.adaptiveCard(confirmActionCard(action.data.theValue)),
+          ],
+        },
+      };
+
+    }
+    throw Error("Not supported: " + action.commandId)
+
   }
 }

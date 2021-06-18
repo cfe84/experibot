@@ -26,7 +26,11 @@
   "bots": [
     {
       "botId": "fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f",
-      "scopes": ["personal", "groupchat", "team"],
+      "scopes": [
+        "personal",
+        "groupchat",
+        "team"
+      ],
       "commandLists": [],
       "supportsFiles": false,
       "isNotificationOnly": false
@@ -39,7 +43,9 @@
         {
           "id": "demoAction",
           "type": "action",
-          "context": ["compose"],
+          "context": [
+            "compose"
+          ],
           "description": "Command to run action to create a Card from Compose Box",
           "title": "Demo card",
           "fetchTask": true,
@@ -70,6 +76,24 @@
       ]
     }
   ],
-  "permissions": ["identity", "messageTeamMembers"],
-  "validDomains": ["localhost:3000", "*.ngrok.io", "rlay.feval.ca"]
+  "staticTabs": [
+    {
+      "contentUrl": "https://rlay.feval.ca:443/bookings/?theme={theme}",
+      "entityId": "StaticTab",
+      "name": "My bookings static tab",
+      "scopes": [
+        "personal",
+        "team"
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "localhost:3000",
+    "*.ngrok.io",
+    "rlay.feval.ca"
+  ]
 }

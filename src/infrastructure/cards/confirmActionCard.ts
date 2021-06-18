@@ -7,7 +7,7 @@ export function confirmActionCard(someText: string) {
     body: [
       {
         type: "TextBlock",
-        text: `This is the text that was received ${someText}`,
+        text: `${someText}`,
         wrap: true,
       },
     ],

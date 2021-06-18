@@ -34,7 +34,6 @@ adapter.onTurnError = async (context, error) => {
   );
 };
 
-const store = new MemoryStore();
 const logger = new ConsoleLogger(
   process.env.LOGLEVEL?.toUpperCase() === "DEBUG"
     ? LogLevel.Debug
@@ -48,7 +47,6 @@ const authenticator = new AADAuthenticator(
 const identityManager = new IdentityManager({ authenticator });
 
 const botActivityHandler = new BotActivityHandler({
-  thingStore: store,
   logger,
   identityManager,
 });
