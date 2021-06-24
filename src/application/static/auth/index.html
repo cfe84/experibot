@@ -1,158 +1,194 @@
 <html>
-  <head>
-    <!--
+
+<head>
+  <!--
     See https://docs.microsoft.com/en-us/javascript/api/@microsoft/teams-js/context?view=msteams-client-js-latest
     and https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/task-modules/task-modules-bots
   -->
-    <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
-    <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        padding: 15px;
+  <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      padding: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <p>
+  <h2>User information</h2>
+  <b>context.userLicenseType</b>: <span id="teamsUserLicenseType"></span><br />
+  <b>context.tenantSku</b>: <span id="teamsTenantSku"></span><br />
+  <b>context.userObjectId</b>: <span id="teamsUserId"></span><br />
+  <b>context.userPrincipalName</b>: <span id="userName"></span><br />
+  <b>backend activity.from.id</b>: <span id="userId"></span><br />
+  <b>msa</b>: <span id="msa"></span><br />
+  </p>
+  <p>
+  <h2>Authentication</h2>
+  <button id="authenticate">Authenticate to MSFT AAD</button></br>
+  <button id="authenticateb2c">Authenticate to AAD B2C</button>
+  </p>
+  <p>
+  <h2>Local storage & cookies</h2>
+  <button id="setLocalStorage">Set localStorage</button>
+  <span id="localStorageSpan"></span>
+  </p>
+  <button id="close">Close</button>
+  <p>
+    <span id="error"></span>
+  </p>
+  <script>
+    const errorSpan = document.getElementById("error")
+    const getQueryParameters = () => {
+      const queryParamsString = window.location.search.substr(1);
+      if (queryParamsString === undefined) {
+        return null;
       }
-    </style>
-  </head>
+      const components = queryParamsString.split("&");
+      const res = {};
+      components.forEach((component) => {
+        const splat = component.split("=", 2);
+        res[splat[0]] = decodeURIComponent(splat[1]);
+      });
+      return res;
+    };
 
-  <body>
-    <p>
-      <h2>User information</h2>
-      <b>context.userObjectId</b>: <span id="teamsUserId"></span><br/>
-      <b>context.userPrincipalName</b>: <span id="userName"></span><br/>
-      <b>backend activity.from.id</b>: <span id="userId"></span><br/>
-      <b>msa</b>: <span id="msa"></span><br/>
-    </p>
-    <p>
-      <h2>Authentication</h2>
-      <button id="authenticate">Authenticate to MSFT AAD</button></br>
-      <button id="authenticateb2c">Authenticate to AAD B2C</button>
-    </p>
-    <p>
-      <h2>Local storage & cookies</h2>
-      <button id="setLocalStorage">Set localStorage</button>
-      <span id="localStorageSpan"></span>
-    </p>
-    <button id="close">Close</button>
+    const queryParameters = getQueryParameters()
 
-    <script>
-      const getQueryParameters = () => {
-        const queryParamsString = window.location.search.substr(1);
-        if (queryParamsString === undefined) {
-          return null;
+    const parseJwt = (jwt) => {
+      const parts = jwt.split(".");
+      return {
+        header: JSON.parse(atob(parts[0])),
+        payload: JSON.parse(atob(parts[1])),
+        signature: parts[2],
+      };
+    };
+
+    const callBackendAsync = (method, url, body, contentType) => {
+      return new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest()
+        request.onreadystatechange = function () {
+          if (this.readyState === 4) {
+            resolve(request.responseText)
+          }
         }
-        const components = queryParamsString.split("&");
-        const res = {};
-        components.forEach((component) => {
-          const splat = component.split("=", 2);
-          res[splat[0]] = decodeURIComponent(splat[1]);
-        });
-        return res;
-      };
+        request.open(method, url, true)
+        if (contentType) {
+          request.setRequestHeader("content-type", contentType)
+        }
+        request.send(body)
+      })
+    }
 
-      const queryParameters = getQueryParameters()
-
-      const parseJwt = (jwt) => {
-        const parts = jwt.split(".");
-        return {
-          header: JSON.parse(atob(parts[0])),
-          payload: JSON.parse(atob(parts[1])),
-          signature: parts[2],
-        };
-      };
-
-      const callBackendAsync = (method, url, body, contentType) => {
-        return new Promise((resolve, reject) => {
-          const request = new XMLHttpRequest()
-          request.onreadystatechange = function() { 
-            if (this.readyState === 4) {
-              resolve(request.responseText)
-            }
-          }
-          request.open(method, url, true)
-          if (contentType) {
-            request.setRequestHeader("content-type", contentType)
-          }
-          request.send(body)
-        })
+    const completeAuthentication = (code) => {
+      msa = document.getElementById("msa");
+      msa.innerHTML = `Exchanging code...`; // jwt.payload.name;
+      const mapping = {
+        code,
+        nonce: queryParameters["nonce"],
+        callbackUrl: window.location.origin + "/auth/authSuccess.html"
       }
+      callBackendAsync("POST", "/api/completeAuth", JSON.stringify(mapping), "application/json").then((res) => {
+        msa.innerHTML = res
+      })
+    }
 
-      const attachAuthButtons = (context) => {
-        const authButton = document.getElementById("authenticate");
-        const authButtonB2C = document.getElementById("authenticateb2c");
-        const auth = (tenantId, clientId) => () => {
-          microsoftTeams.authentication.authenticate({
-            url: `${window.location.origin}/auth/auth.html?tenantId=${tenantId}&clientId=${clientId}`,
-            width: 600,
-            height: 535,
-            successCallback: function (result) {
-              //const jwt = parseJwt(result.idToken);
-              const code = result.code;
-              msa = document.getElementById("msa");
-              msa.innerHTML = "Exchanging code..."; // jwt.payload.name;
-              const mapping = {
-                code, 
-                nonce: queryParameters["nonce"],
-                callbackUrl:window.location.origin + "/auth/authSuccess.html"
-              }
-              callBackendAsync("POST", "/api/completeAuth", JSON.stringify(mapping), "application/json").then((res) => {
-                msa.innerHTML = res
-              })
-            },
-            failureCallback: function (reason) {
-              handleAuthError(reason);
-            },
-          });
-        };
-        authButton.onclick = auth(context.tid, context.clientId);
-        authButtonB2C.onclick = auth(
-          "437426e6-c3c0-4806-8921-76bcdd4493c9",
-          "0b0d52e1-edc0-41f2-87cc-5d2ef153e7b0"
+    const startAuthenticationForDesktop = (url) => {
+      localStorage.setItem("auth:client", "desktop")
+      microsoftTeams.authentication.authenticate({
+        url,
+        width: 600,
+        height: 535,
+        successCallback: function (result) {
+          //const jwt = parseJwt(result.idToken);
+          const code = result.code;
+          completeAuthentication(code)
+        },
+        failureCallback: function (reason) {
+          errorSpan.innerHTML = reason
+        },
+      });
+    }
+
+    const startAuthenticationForMobile = (url) => {
+      localStorage.setItem("auth:client", "mobile")
+      localStorage.setItem("auth:redirect", window.location.href)
+      window.location.assign(url + "&mobile=true")
+    }
+
+    const completeAuthForMobile = () => {
+      if (queryParameters["authResult"]) {
+        const res = JSON.parse(atob(queryParameters["authResult"]))
+        completeAuthentication(res.code)
+      }
+    }
+    completeAuthForMobile()
+
+    const attachAuthButtons = (context) => {
+      const authButton = document.getElementById("authenticate");
+      const authButtonB2C = document.getElementById("authenticateb2c");
+      const auth = (tenantId, clientId) => () => {
+        const url = `${window.location.origin}/auth/auth.html?tenantId=${tenantId}&clientId=${clientId}`
+
+        if (context.hostClientType === "desktop" || context.hostClientType === "web") {
+          startAuthenticationForDesktop(url)
+        } else {
+          startAuthenticationForMobile(url)
+        }
+      };
+      authButton.onclick = auth(context.tid, context.clientId);
+      authButtonB2C.onclick = auth(
+        "437426e6-c3c0-4806-8921-76bcdd4493c9",
+        "0b0d52e1-edc0-41f2-87cc-5d2ef153e7b0"
+      );
+    };
+
+    const attachCloseButton = () => {
+      const close = document.getElementById("close");
+      close.onclick = () => {
+        // Task module closes on submitTask
+        // https://stackoverflow.com/questions/62260918/ms-teams-taskmodule-close-the-window
+        microsoftTeams.tasks.submitTask(null);
+      };
+    };
+
+    const attachLocalStorageElements = () => {
+      const setLocalStorageButton =
+        document.getElementById("setLocalStorage");
+      const localStorageSpan = document.getElementById("localStorageSpan");
+
+      setLocalStorageButton.onclick = () => {
+        localStorage.setItem(
+          "myvalue",
+          "Date was " + new Date().toISOString()
         );
-      };
-
-      const attachCloseButton = () => {
-        const close = document.getElementById("close");
-        close.onclick = () => {
-          // Task module closes on submitTask
-          // https://stackoverflow.com/questions/62260918/ms-teams-taskmodule-close-the-window
-          microsoftTeams.tasks.submitTask(null);
-        };
-      };
-
-      const attachLocalStorageElements = () => {
-        const setLocalStorageButton =
-          document.getElementById("setLocalStorage");
-        const localStorageSpan = document.getElementById("localStorageSpan");
-
-        setLocalStorageButton.onclick = () => {
-          localStorage.setItem(
-            "myvalue",
-            "Date was " + new Date().toISOString()
-          );
-          localStorageSpan.innerHTML =
-            "Local storage is set to: " + localStorage.getItem("myvalue");
-        };
         localStorageSpan.innerHTML =
-          "Local storage is: " + localStorage.getItem("myvalue");
+          "Local storage is set to: " + localStorage.getItem("myvalue");
       };
+      localStorageSpan.innerHTML =
+        "Local storage is: " + localStorage.getItem("myvalue");
+    };
 
-      const fillUserFields = (context) => {
-        const teamsUserId = document.getElementById("teamsUserId")
-        const userId = document.getElementById("userId")
-        const userName = document.getElementById("userName")
-        teamsUserId.innerHTML = context.userObjectId
-        userName.innerHTML = context.userPrincipalName
-        userId.innerHTML = queryParameters["userid"]
-      }
+    const fillUserFields = (context) => {
+      const teamsUserId = document.getElementById("teamsUserId")
+      const userId = document.getElementById("userId")
+      const userName = document.getElementById("userName")
+      teamsUserId.innerHTML = context.userObjectId
+      userName.innerHTML = context.userPrincipalName
+      userId.innerHTML = queryParameters["userid"]
+    }
 
-      microsoftTeams.initialize(() => {
-        microsoftTeams.getContext((context) => {
-          attachAuthButtons(context);
-          fillUserFields(context);
-          console.log(JSON.stringify(context, null, 2))
+    microsoftTeams.initialize(() => {
+      microsoftTeams.getContext((context) => {
+        attachAuthButtons(context);
+        fillUserFields(context);
+        console.log(JSON.stringify(context, null, 2))
       });
-      });
-      attachCloseButton();
-      attachLocalStorageElements();
-    </script>
-  </body>
+    });
+    attachCloseButton();
+    attachLocalStorageElements();
+  </script>
+</body>
+
 </html>

@@ -1,42 +1,48 @@
 <html>
-  <head>
-    <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
-    <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        padding: 15px;
-      }
-    </style>
-  </head>
 
-  <body>
-    Auth callback <span id="res"></span>
-    <script>
-      const getQueryParameters = () => {
-        const queryParamsString = window.location.href.split("#")[1];
-        document.getElementById("res").innerHTML = queryParamsString;
-        const components = queryParamsString.split("&");
-        const res = {};
-        components.forEach((component) => {
-          const splat = component.split("=", 2);
-          res[splat[0]] = decodeURIComponent(splat[1]);
-        });
-        return res;
-      };
+<head>
+  <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      padding: 15px;
+    }
+  </style>
+</head>
 
-      microsoftTeams.initialize(() => {
-        // You'd check the nonce here
-        const queryParameters = getQueryParameters();
-        microsoftTeams.authentication.notifySuccess({
-          code: queryParameters["code"],
-          // idToken: queryParameters["id_token"],
-          result: "Success! ",
-          // accessToken: queryParameters["access_token"],
-          // tokenType: queryParameters["token_type"],
-          // expiresIn: queryParameters["expires_in"],
-          // microsoftTeams.authentication.notifyFailure("UnexpectedFailure");
-        });
+<body>
+  Auth callback <span id="res"></span>
+  <script>
+    const getQueryParameters = () => {
+      const queryParamsString = window.location.href.split("#")[1];
+      document.getElementById("res").innerHTML = queryParamsString;
+      const components = queryParamsString.split("&");
+      const res = {};
+      components.forEach((component) => {
+        const splat = component.split("=", 2);
+        res[splat[0]] = decodeURIComponent(splat[1]);
       });
-    </script>
-  </body>
+      return res;
+    };
+
+    microsoftTeams.initialize(() => {
+      // You'd check the nonce here
+      const queryParameters = getQueryParameters();
+      const res = {
+        code: queryParameters["code"],
+        result: "Success! "
+      }
+      const clientType = localStorage.getItem("auth:client")
+      if (clientType === "desktop") {
+        microsoftTeams.authentication.notifySuccess(res);
+      } else {
+        const redirect = localStorage.getItem("auth:redirect")
+        const encodedRes = btoa(JSON.stringify(res))
+        const redirectWithRes = `${redirect}&authResult=${encodedRes}`
+        window.location.assign(redirectWithRes)
+      }
+    });
+  </script>
+</body>
+
 </html>
