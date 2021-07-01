@@ -1,38 +1,67 @@
 <html>
-  <head>
-    <!--
+
+<head>
+  <!--
     See https://docs.microsoft.com/en-us/javascript/api/@microsoft/teams-js/context?view=msteams-client-js-latest
     and https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/task-modules/task-modules-bots
   -->
-    <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
-    <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        padding: 15px;
+  <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      padding: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1 id="emitter"></h1>
+  <span id="message"></span>
+
+  <button id="close">Close</button>
+
+  <script>
+    const getQueryParameters = () => {
+      const queryParamsString = window.location.search.substr(1);
+      if (queryParamsString === undefined) {
+        return null;
       }
-    </style>
-  </head>
-
-  <body>
-    You have been charged for $125. Please pay.
-
-    <button id="close">Pay</button>
-
-    <script>
-      microsoftTeams.initialize();
-      microsoftTeams.getContext(function (context) {
-        document.getElementsByTagName("body")[0].style.color =
-          context.theme !== "default" ? "white" : "black";
+      const components = queryParamsString.split("&");
+      const res = {};
+      components.forEach((component) => {
+        const splat = component.split("=", 2);
+        res[splat[0]] = decodeURIComponent(splat[1]);
       });
-      const attachCloseButton = () => {
-        const close = document.getElementById("close");
-        close.onclick = () => {
-          // Task module closes on submitTask
-          // https://stackoverflow.com/questions/62260918/ms-teams-taskmodule-close-the-window
-          microsoftTeams.tasks.submitTask(null);
-        };
+      return res;
+    };
+
+    const queryParameters = getQueryParameters()
+
+    microsoftTeams.initialize();
+    microsoftTeams.getContext(function (context) {
+      document.getElementsByTagName("body")[0].style.color =
+        context.theme !== "default" ? "white" : "black";
+    });
+
+    const setText = () => {
+      const emitterTxt = document.getElementById("emitter")
+      const messageTxt = document.getElementById("message")
+
+      emitterTxt.innerHTML = queryParameters["emitter"]
+      messageTxt.innerHTML = queryParameters["message"]
+    }
+
+    const attachCloseButton = () => {
+      const close = document.getElementById("close");
+      close.onclick = () => {
+        // Task module closes on submitTask
+        // https://stackoverflow.com/questions/62260918/ms-teams-taskmodule-close-the-window
+        microsoftTeams.tasks.submitTask(null);
       };
-      attachCloseButton();
-    </script>
-  </body>
+    };
+    attachCloseButton();
+  </script>
+</body>
+
 </html>

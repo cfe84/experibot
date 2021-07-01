@@ -35,6 +35,7 @@ export function taskModuleCard(count: number) {
           msteams: {
             type: "task/submit",
           },
+          moduleName: "chained",
           button: "close",
         },
       },
@@ -47,6 +48,7 @@ export function taskModuleCard(count: number) {
           msteams: {
             type: "task/fetch",
           },
+          moduleName: "chained",
           i: count,
           button: "continue",
         },

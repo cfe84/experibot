@@ -7,7 +7,7 @@ export function messageExtensionActionCard() {
     body: [
       {
         type: "TextBlock",
-        text: `The value`,
+        text: `Enter a value below`,
         weight: "Bolder",
         size: "Medium",
         wrap: true,
@@ -22,7 +22,19 @@ export function messageExtensionActionCard() {
     actions: [
       {
         type: "Action.Submit",
-        id: "fromage",
+        id: "submit",
+        title: "Send value",
+        verb: "triggerExtension",
+        data: {
+          msteams: {
+            type: "task/fetch",
+          },
+          module: "triggerExtension",
+        },
+      },
+      {
+        type: "Action.Submit",
+        id: "me.submit",
         title: "Open",
         verb: "triggerExtension",
         data: {

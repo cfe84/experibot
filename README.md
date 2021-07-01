@@ -41,6 +41,15 @@ The [index](/src/application/static/auth/index.html) starts authentication by [i
 
 # Use
 
+## Setup your bot and update the manifest
+
+Teams is using the bot service to determine what endpoint to call. The manifest contains an `id` currently pointing to my bot. You need to create yours. To do so, either:
+
+1. Do it manually: go to https://portal.azure.com, create a new Azure Bot resource
+2. Through the VS Code Teams extension.
+
+
+
 ## Config
 
 Create a `.env` file, enter 

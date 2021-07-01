@@ -21,7 +21,7 @@ export function openTaskModuleCard() {
           msteams: {
             type: "task/fetch",
           },
-          module: "webapp",
+          module: "authentication",
         },
       },
       {

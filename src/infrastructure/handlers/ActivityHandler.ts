@@ -1,5 +1,5 @@
 import { CardFactory, InvokeResponse, MessageFactory, TeamsInfo, TurnContext } from "botbuilder";
-import { BotActivityHandlerDependencies } from "../BotActivityHandler";
+import { IDependencies } from "../BotActivityHandler";
 import { activityRefreshCard } from "../cards/activityRefreshCard";
 import { activityStatusCard } from "../cards/activityStatusCard";
 import { activityTaskCard } from "../cards/activityTaskCard";
@@ -15,7 +15,7 @@ interface ActivityStatus {
 
 export class ActivityHandler {
   private activities: { [key: string]: ActivityStatus } = {}
-  constructor(private deps: BotActivityHandlerDependencies) {
+  constructor(private deps: IDependencies) {
   }
 
 
