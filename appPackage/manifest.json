@@ -76,6 +76,19 @@
       ]
     }
   ],
+  "configurableTabs": [
+    {
+      "configurationUrl": "https://rlay.feval.ca/meetings/sidePanel/configuration.html",
+      "canUpdateConfiguration": true,
+      "scopes": [
+        "team",
+        "groupchat"
+      ],
+      "context": [
+        "meetingSidePanel"
+      ]
+    }
+  ],
   "staticTabs": [
     {
       "contentUrl": "https://rlay.feval.ca:443/bookings/?theme={theme}",

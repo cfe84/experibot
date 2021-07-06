@@ -1,0 +1,49 @@
+<html>
+
+<head>
+  <!--
+    See https://docs.microsoft.com/en-us/javascript/api/@microsoft/teams-js/context?view=msteams-client-js-latest
+    and https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/task-modules/task-modules-bots
+  -->
+  <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      padding: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <p>
+  <h2>Configuration page for the meeting side panel</h2>
+  You could configure the panel here.
+  <br />
+  Tab name: <input id="tabName" value="SidePanel"></input><br />
+  </p>
+  <script>
+    const errorSpan = document.getElementById("error")
+    let tabName = "SidePanel"
+    const tabNameInput = document.getElementById("tabName")
+    tabNameInput.onkeyup = () => tabName = tabNameInput.value
+    microsoftTeams.initialize(() => {
+      microsoftTeams.getContext((context) => {
+        microsoftTeams.settings.registerOnSaveHandler((saveEvent) => {
+          microsoftTeams.settings.setSettings({
+            websiteUrl: `${window.location.origin}`,
+            contentUrl: `${window.location.origin}/meetings/sidePanel/index.html?theme={theme}`,
+            entityId: "grayIconTab",
+            suggestedDisplayName: tabName
+          });
+          saveEvent.notifySuccess();
+        });
+
+        microsoftTeams.settings.setValidityState(true);
+      });
+    });
+    attachCloseButton();
+    attachLocalStorageElements();
+  </script>
+</body>
+
+</html>
