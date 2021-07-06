@@ -6,11 +6,13 @@ import { openTaskModuleCard } from "../cards/openTaskModuleCard";
 import { refreshCard } from "../cards/refreshCard";
 import * as signinCard from "../cards/signinCard.json";
 import { ActivityHandler } from "./ActivityHandler";
+import { BubbleDemoHandler } from "./BubbleDemoHandler";
 
 const Actions: { [key: string]: string } = {
   SIGNIN: "signin",
   SHOW_TASK_MODULE: "show task module",
   SHOW_BUBBLE: "show bubble",
+  SHOW_BUBBLE_CLOSE: "show closing bubble",
   SHOW_REFRESH: "show refresh",
   START_ACTIVITY: "start activity",
   CONFIRM_ANONYMOUS_IDENTITY: "confirm identity",
@@ -21,7 +23,7 @@ const COMPLETE_ACTIVITY = "complete activity"
 export class CommandHandler {
   static Actions = Actions
 
-  constructor(private deps: IDependencies, private activityHandler: ActivityHandler) { }
+  constructor(private deps: IDependencies, private activityHandler: ActivityHandler, private bubbleDemoHandler: BubbleDemoHandler) { }
 
   async handleCommand(command: string, context: TurnContext) {
     switch (command) {
@@ -38,7 +40,10 @@ export class CommandHandler {
         await this.showTaskModuleAsync(context);
         break;
       case Actions.SHOW_BUBBLE:
-        await this.showBubbleAsync(context);
+        await this.bubbleDemoHandler.showBubbleAsync(context);
+        break;
+      case Actions.SHOW_BUBBLE_CLOSE:
+        await this.bubbleDemoHandler.showClosingBubbleAsync(context);
         break;
       case Actions.CONFIRM_ANONYMOUS_IDENTITY:
         await this.confirmAnonymousIdentityAsync(context);
@@ -62,21 +67,6 @@ export class CommandHandler {
       "No MSA mapping found";
     const card = CardFactory.adaptiveCard(identityCard(msa, userId));
     await context.sendActivity({ attachments: [card] });
-  }
-
-  private async showBubbleAsync(context: TurnContext) {
-    const replyActivity = MessageFactory.text("I sent a bubble"); // this could be an adaptive card instead
-    const emitter = encodeURIComponent(context.activity.from.name)
-    const message = encodeURIComponent(context.activity.value?.message || "This is the bubble text")
-    const url = `${process.env.BaseUrl}/bubble/?emitter=${emitter}&message=${message}`
-    const encodedUrl = encodeURIComponent(url as string);
-    replyActivity.channelData = {
-      notification: {
-        alertInMeeting: true,
-        externalResourceUrl: `https://teams.microsoft.com/l/bubble/${process.env.BotId}?url=${encodedUrl}&height=300&width=500&title=Payment&completionBotId=${process.env.BotId}`,
-      },
-    };
-    await context.sendActivity(replyActivity);
   }
 
   private async showTaskModuleAsync(context: TurnContext) {

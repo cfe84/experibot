@@ -24,6 +24,7 @@ import { RefreshHandler } from "./handlers/RefreshHandler";
 import { AuthenticationHandler } from "./handlers/AuthenticationInAppHandler";
 import { ChainedTaskModulesHandler } from "./handlers/ChainedTaskModulesHandler";
 import e = require("express");
+import { BubbleDemoHandler } from "./handlers/BubbleDemoHandler";
 
 export interface IDependencies {
   logger: ILogger;
@@ -40,6 +41,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
   private refreshHandler: RefreshHandler
   private authenticationHandler: AuthenticationHandler
   private chainedTaskModuleHandler: ChainedTaskModulesHandler
+  private bubbleDemoHandler: BubbleDemoHandler
 
   constructor(private deps: IDependencies) {
     super();
@@ -51,7 +53,8 @@ export class BotActivityHandler extends TeamsActivityHandler {
     this.onInvokeActivity = (context) => this.handleInvokeAsync(context);
 
     this.activityHandler = new ActivityHandler(deps)
-    this.commandHandler = new CommandHandler(deps, this.activityHandler)
+    this.bubbleDemoHandler = new BubbleDemoHandler()
+    this.commandHandler = new CommandHandler(deps, this.activityHandler, this.bubbleDemoHandler)
     this.messagingExtensionHandler = new MessagingExtensionHandler(deps, this.commandHandler)
     this.refreshHandler = new RefreshHandler(deps)
     this.authenticationHandler = new AuthenticationHandler(deps)

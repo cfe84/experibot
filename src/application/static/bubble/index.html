@@ -39,6 +39,11 @@
     const queryParameters = getQueryParameters()
 
     microsoftTeams.initialize();
+
+    if (queryParameters.closeImmediately) {
+      microsoftTeams.tasks.submitTask(null)
+    }
+
     microsoftTeams.getContext(function (context) {
       document.getElementsByTagName("body")[0].style.color =
         context.theme !== "default" ? "white" : "black";
