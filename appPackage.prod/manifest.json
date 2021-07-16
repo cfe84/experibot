@@ -1,0 +1,113 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.8/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.8",
+  "version": "1.0.0",
+  "id": "1f0ffd9f-c38e-47da-b09f-712081a458ff",
+  "packageName": "com.template.bot.ts",
+  "developer": {
+    "name": "Teams App, Inc.",
+    "websiteUrl": "https://localhost:3000",
+    "privacyUrl": "https://localhost:3000/privacy",
+    "termsOfUseUrl": "https://localhost:3000/termsofuse"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "Experibot",
+    "full": "Experimental bot"
+  },
+  "description": {
+    "short": "Short description for Conversation Bot.",
+    "full": "Full description of Conversation Bot."
+  },
+  "accentColor": "#FFFFFF",
+  "bots": [
+    {
+      "botId": "1f0ffd9f-c38e-47da-b09f-712081a458ff",
+      "scopes": [
+        "personal",
+        "groupchat",
+        "team"
+      ],
+      "commandLists": [],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "composeExtensions": [
+    {
+      "botId": "1f0ffd9f-c38e-47da-b09f-712081a458ff",
+      "commands": [
+        {
+          "id": "demoAction",
+          "type": "action",
+          "context": [
+            "compose"
+          ],
+          "description": "Command to run action to create a Card from Compose Box",
+          "title": "Demo card",
+          "fetchTask": true,
+          "taskInfo": {
+            "url": "https://experibot.azurewebsites.net/bubble/"
+          },
+          "parameters": [
+            {
+              "name": "title",
+              "title": "Card title",
+              "description": "This is a demo action",
+              "inputType": "text"
+            },
+            {
+              "name": "subTitle",
+              "title": "Subtitle",
+              "description": "It has a subtitle",
+              "inputType": "text"
+            },
+            {
+              "name": "text",
+              "title": "Text",
+              "description": "Text for the card",
+              "inputType": "textarea"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "configurableTabs": [
+    {
+      "configurationUrl": "https://experibot.azurewebsites.net/meetings/sidePanel/configuration.html",
+      "canUpdateConfiguration": true,
+      "scopes": [
+        "team",
+        "groupchat"
+      ],
+      "context": [
+        "meetingSidePanel"
+      ]
+    }
+  ],
+  "staticTabs": [
+    {
+      "contentUrl": "https://experibot.azurewebsites.net:443/bookings/?theme={theme}",
+      "entityId": "StaticTab",
+      "name": "My bookings static tab",
+      "scopes": [
+        "personal",
+        "team"
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "localhost:3000",
+    "*.ngrok.io",
+    "i.imgur.com",
+    "experibot.azurewebsites.net"
+  ]
+}

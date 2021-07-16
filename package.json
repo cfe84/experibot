@@ -9,7 +9,8 @@
   "license": "MIT",
   "main": "dist/application/index.js",
   "scripts": {
-    "start": "npm run build && node dist/application/index.js",
+    "bns": "npm run build && npm start",
+    "start": "node dist/application/index.js",
     "watch": "nodemon ./index.js",
     "build": "tsc && ncp src/application/static/ dist/application/static/",
     "clean": "rimraf dist/",
