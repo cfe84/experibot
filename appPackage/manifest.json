@@ -107,6 +107,7 @@
   "validDomains": [
     "localhost:3000",
     "*.ngrok.io",
+    "i.imgur.com",
     "rlay.feval.ca"
   ]
 }

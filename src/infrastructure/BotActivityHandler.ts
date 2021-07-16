@@ -8,14 +8,10 @@ import {
 } from "botbuilder-core";
 import {
   TeamsActivityHandler,
-  CardFactory,
-  TeamsInfo,
 } from "botbuilder";
 import { } from "botbuilder-dialogs";
 
-import { refreshCard } from "./cards/refreshCard";
 import { ILogger } from "../domain/ILogger";
-import { taskModuleCard } from "./cards/taskModuleCard";
 import { IdentityManager } from "../domain/IdentityManager";
 import { ActivityHandler } from "./handlers/ActivityHandler";
 import { CommandHandler } from "./handlers/CommandHandler";
@@ -25,6 +21,7 @@ import { AuthenticationHandler } from "./handlers/AuthenticationInAppHandler";
 import { ChainedTaskModulesHandler } from "./handlers/ChainedTaskModulesHandler";
 import e = require("express");
 import { BubbleDemoHandler } from "./handlers/BubbleDemoHandler";
+import { TargetedBubbleHandler } from "./handlers/TargetedBubbleHandler";
 
 export interface IDependencies {
   logger: ILogger;
@@ -42,6 +39,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
   private authenticationHandler: AuthenticationHandler
   private chainedTaskModuleHandler: ChainedTaskModulesHandler
   private bubbleDemoHandler: BubbleDemoHandler
+  private targetedBubbleDemoHandler: TargetedBubbleHandler
 
   constructor(private deps: IDependencies) {
     super();
@@ -54,7 +52,11 @@ export class BotActivityHandler extends TeamsActivityHandler {
 
     this.activityHandler = new ActivityHandler(deps)
     this.bubbleDemoHandler = new BubbleDemoHandler()
-    this.commandHandler = new CommandHandler(deps, this.activityHandler, this.bubbleDemoHandler)
+    this.targetedBubbleDemoHandler = new TargetedBubbleHandler()
+    this.commandHandler = new CommandHandler(deps,
+      this.activityHandler,
+      this.bubbleDemoHandler,
+      this.targetedBubbleDemoHandler)
     this.messagingExtensionHandler = new MessagingExtensionHandler(deps, this.commandHandler)
     this.refreshHandler = new RefreshHandler(deps)
     this.authenticationHandler = new AuthenticationHandler(deps)

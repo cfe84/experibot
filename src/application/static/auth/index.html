@@ -96,19 +96,26 @@
 
     const startAuthenticationForDesktop = (url) => {
       localStorage.setItem("auth:client", "desktop")
-      microsoftTeams.authentication.authenticate({
-        url,
-        width: 600,
-        height: 535,
-        successCallback: function (result) {
-          //const jwt = parseJwt(result.idToken);
-          const code = result.code;
-          completeAuthentication(code)
-        },
-        failureCallback: function (reason) {
-          errorSpan.innerHTML = reason
-        },
-      });
+      try {
+        callBackendAsync("POST", "/api/logs/log", "Trying to open popup", "text/plain").then((res) => {
+        })
+        microsoftTeams.authentication.authenticate({
+          url,
+          width: 600,
+          height: 535,
+          successCallback: function (result) {
+            const code = result.code;
+            completeAuthentication(code)
+          },
+          failureCallback: function (reason) {
+            errorSpan.innerHTML = reason
+          },
+        });
+      }
+      catch (error) {
+        callBackendAsync("POST", "/api/logs/errors", JSON.stringify(error), "text/plain").then((res) => {
+        })
+      }
     }
 
     const startAuthenticationForMobile = (url) => {
@@ -131,11 +138,11 @@
       const auth = (tenantId, clientId) => () => {
         const url = `${window.location.origin}/auth/auth.html?tenantId=${tenantId}&clientId=${clientId}`
 
-        if (context.hostClientType === "desktop" || context.hostClientType === "web") {
-          startAuthenticationForDesktop(url)
-        } else {
-          startAuthenticationForMobile(url)
-        }
+        // if (context.hostClientType === "desktop" || context.hostClientType === "web") {
+        startAuthenticationForDesktop(url)
+        // } else {
+        //   startAuthenticationForMobile(url)
+        // }
       };
       authButton.onclick = auth(context.tid, context.clientId);
       authButtonB2C.onclick = auth(

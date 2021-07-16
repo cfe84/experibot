@@ -16,13 +16,9 @@
 
 <body>
 
-  <h1 id="emitter"></h1>
-  <span id="message"></span>
+  <h1>This meeting is done. Please go away.</h1>
 
-  <br />
-  <button id="openTaskModule">Open task module</button>
-  <br />
-  <button id="close">Close</button>
+  <img id="img" src=""></img>
 
   <script>
     const getQueryParameters = () => {
@@ -40,35 +36,27 @@
     };
 
     const queryParameters = getQueryParameters()
-    const openTaskModuleBtn = document.getElementById("openTaskModule")
+    const img = document.getElementById("img")
 
     microsoftTeams.initialize();
-
-    if (queryParameters.closeImmediately) {
-      microsoftTeams.tasks.submitTask(null)
-    }
 
     microsoftTeams.getContext(function (context) {
       document.getElementsByTagName("body")[0].style.color =
         context.theme !== "default" ? "white" : "black";
     });
 
-    const setText = () => {
-      const emitterTxt = document.getElementById("emitter")
-      const messageTxt = document.getElementById("message")
-
-      emitterTxt.innerHTML = queryParameters["emitter"]
-      messageTxt.innerHTML = queryParameters["message"]
+    const setPicture = () => {
+      img.src = queryParameters["img"]
     }
 
     const attachCloseButton = () => {
-      const close = document.getElementById("close");
-      close.onclick = () => {
+      img.onclick = () => {
         // Task module closes on submitTask
         // https://stackoverflow.com/questions/62260918/ms-teams-taskmodule-close-the-window
         microsoftTeams.tasks.submitTask(null);
       };
     };
+    setPicture()
     attachCloseButton();
   </script>
 </body>

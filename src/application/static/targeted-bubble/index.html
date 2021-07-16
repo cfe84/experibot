@@ -16,13 +16,11 @@
 
 <body>
 
-  <h1 id="emitter"></h1>
-  <span id="message"></span>
-
+  <h1>Semi-targeted bubble</h1>
+  <span>This bubble only shows to the people you are selecting</span>
   <br />
-  <button id="openTaskModule">Open task module</button>
-  <br />
-  <button id="close">Close</button>
+  <span id="sdfs"></span>
+  <button id="close">Cancel</button>
 
   <script>
     const getQueryParameters = () => {
@@ -39,6 +37,11 @@
       return res;
     };
 
+    function setBackground(context) {
+      document.getElementsByTagName("body")[0].style.color =
+        context.theme !== "default" ? "white" : "black";
+    }
+
     const queryParameters = getQueryParameters()
     const openTaskModuleBtn = document.getElementById("openTaskModule")
 
@@ -49,22 +52,17 @@
     }
 
     microsoftTeams.getContext(function (context) {
-      document.getElementsByTagName("body")[0].style.color =
-        context.theme !== "default" ? "white" : "black";
+      setBackground(context)
+      // microsoftTeams.tasks.submitTask({
+      //   type: "invoke",
+      //   name: "task/submit",
+      //   value: "lalalala"
+      // }, "fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f")
     });
-
-    const setText = () => {
-      const emitterTxt = document.getElementById("emitter")
-      const messageTxt = document.getElementById("message")
-
-      emitterTxt.innerHTML = queryParameters["emitter"]
-      messageTxt.innerHTML = queryParameters["message"]
-    }
 
     const attachCloseButton = () => {
       const close = document.getElementById("close");
       close.onclick = () => {
-        // Task module closes on submitTask
         // https://stackoverflow.com/questions/62260918/ms-teams-taskmodule-close-the-window
         microsoftTeams.tasks.submitTask(null);
       };

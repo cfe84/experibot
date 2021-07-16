@@ -1,5 +1,5 @@
 import * as express from "express";
-import { BotFrameworkAdapter, TurnContext } from "botbuilder";
+import { BotFrameworkAdapter, TeamsInfo, TurnContext } from "botbuilder";
 import { BotActivityHandler } from "../infrastructure/BotActivityHandler";
 import { MemoryStore } from "../infrastructure/MemoryStore";
 import path = require("path");
@@ -58,6 +58,7 @@ const staticContentPath = path.join(__dirname, "static");
 logger.debug(`Using static content in `, staticContentPath);
 server.use(express.static(staticContentPath));
 server.use(express.json());
+server.use(express.text())
 
 server.post("/api/completeAuth", (req, res) => {
   const mapping = req.body as CodeExchange;
@@ -71,6 +72,18 @@ server.post("/api/completeAuth", (req, res) => {
       res.send(msa);
       res.end();
     });
+});
+
+server.post("/api/logs/log", (req, res) => {
+  const message = req.body;
+  console.log(message)
+  res.end();
+});
+
+server.post("/api/logs/error", (req, res) => {
+  const error = req.body;
+  console.error(error)
+  res.end();
 });
 
 // Listen for incoming requests.

@@ -7,23 +7,30 @@ import { refreshCard } from "../cards/refreshCard";
 import * as signinCard from "../cards/signinCard.json";
 import { ActivityHandler } from "./ActivityHandler";
 import { BubbleDemoHandler } from "./BubbleDemoHandler";
+import { TargetedBubbleHandler } from "./TargetedBubbleHandler";
 
 const Actions: { [key: string]: string } = {
   SIGNIN: "signin",
   SHOW_TASK_MODULE: "show task module",
   SHOW_BUBBLE: "show bubble",
+  SHOW_TARGETED_BUBBLE: "show targeted bubble",
   SHOW_BUBBLE_CLOSE: "show closing bubble",
   SHOW_REFRESH: "show refresh",
   START_ACTIVITY: "start activity",
   CONFIRM_ANONYMOUS_IDENTITY: "confirm identity",
+  MEETING_IS_DONE: "meeting is done",
   HELP: "help",
+  MONITOR: "monitor participants"
 };
 const COMPLETE_ACTIVITY = "complete activity"
 
 export class CommandHandler {
   static Actions = Actions
 
-  constructor(private deps: IDependencies, private activityHandler: ActivityHandler, private bubbleDemoHandler: BubbleDemoHandler) { }
+  constructor(private deps: IDependencies,
+    private activityHandler: ActivityHandler,
+    private bubbleDemoHandler: BubbleDemoHandler,
+    private targetedBubbleDemoHandler: TargetedBubbleHandler) { }
 
   async handleCommand(command: string, context: TurnContext) {
     switch (command) {
@@ -38,6 +45,9 @@ export class CommandHandler {
         break;
       case Actions.SHOW_TASK_MODULE:
         await this.showTaskModuleAsync(context);
+        break;
+      case Actions.SHOW_TARGETED_BUBBLE:
+        await this.targetedBubbleDemoHandler.showTargetedBubbleAsync(context);
         break;
       case Actions.SHOW_BUBBLE:
         await this.bubbleDemoHandler.showBubbleAsync(context);
@@ -54,11 +64,38 @@ export class CommandHandler {
       case COMPLETE_ACTIVITY:
         await this.activityHandler.completeActivityAsync(context)
         break
+      case Actions.MEETING_IS_DONE:
+        await this.meetingIsDoneAsync(context)
+        break
+      case Actions.MONITOR:
+        await this.monitorAsync(context)
       default:
         await this.helpActivityAsync(context, command);
     }
   }
 
+  async meetingIsDoneAsync(context: TurnContext) {
+    const replyActivity = MessageFactory.text("Meeting is done!"); // this could be an adaptive card instead
+    const img = encodeURIComponent("https://i.imgur.com/RbCKrf8.gif")
+    const url = `${process.env.BaseUrl}/bubble/meeting-is-done.html?message=${img}`
+    const encodedUrl = encodeURIComponent(url as string);
+    const height = 500
+    const width = 400
+    replyActivity.channelData = {
+      notification: {
+        alertInMeeting: true,
+        externalResourceUrl: `https://teams.microsoft.com/l/bubble/${process.env.BotId}?url=${encodedUrl}&height=${height}&width=${width}&title=Meeting%20is%20finished&completionBotId=${process.env.BotId}`,
+      },
+    };
+    await context.sendActivity(replyActivity);
+  }
+
+  private async monitorAsync(context: TurnContext) {
+    const participants = await TeamsInfo.getMembers(context)
+    const names = participants.map(p => p.name).join(", ")
+    console.log(names)
+    setTimeout(() => this.monitorAsync(context).then(() => { }), 10000)
+  }
 
   private async confirmAnonymousIdentityAsync(context: TurnContext) {
     const userId = context.activity.from.id;

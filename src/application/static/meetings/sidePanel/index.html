@@ -24,7 +24,8 @@
   </p>
   <p>
   <h2>List of meeting participants</h2>
-  <ul id="participantsList"></ul>
+  <ul id="participants-list"></ul>
+  <button id="refresh-participants">Refresh</button>
   </p>
   <script>
     const errorSpan = document.getElementById("error")
@@ -62,11 +63,9 @@
 
     const fillUserFields = (context) => {
       const teamsUserId = document.getElementById("teamsUserId")
-      const userId = document.getElementById("userId")
       const userName = document.getElementById("userName")
       teamsUserId.innerHTML = context.userObjectId
       userName.innerHTML = context.userPrincipalName
-      userId.innerHTML = queryParameters["userid"]
     }
 
     microsoftTeams.initialize(() => {
@@ -76,8 +75,25 @@
         fillUserFields(context);
       });
     });
-    attachCloseButton();
-    attachLocalStorageElements();
+
+    const attachRefreshParticipantsButton = () => {
+      const btn = document.getElementById("refresh-participants")
+      btn.onclick = () => {
+        const task = {
+          url: window.location.origin + "/meetings/sidePanel/refreshParticipants.html",
+          title: "Refresh",
+          height: 100,
+          width: 100,
+          // TODO: Parameterize
+          completionBotId: "fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f"
+        }
+        submitHandler = (err, result) => {
+          document.getElementById("participants-list").innerHTML = result + err
+        };
+        microsoftTeams.tasks.startTask(task, submitHandler);
+      }
+    }
+    attachRefreshParticipantsButton()
   </script>
 </body>
 
