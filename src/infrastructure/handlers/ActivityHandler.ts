@@ -1,4 +1,4 @@
-import { CardFactory, InvokeResponse, MessageFactory, TeamsInfo, TurnContext } from "botbuilder";
+import { CardFactory, InvokeResponse, MessageFactory, TeamsChannelAccount, TeamsInfo, TurnContext } from "botbuilder";
 import { IDependencies } from "../BotActivityHandler";
 import { activityRefreshCard } from "../cards/activityRefreshCard";
 import { activityStatusCard } from "../cards/activityStatusCard";
@@ -6,51 +6,74 @@ import { activityTaskCard } from "../cards/activityTaskCard";
 import { v4 as uuid } from "uuid"
 import { confirmActionCard } from "../cards/confirmActionCard";
 
-type ParticipantStatus = { [id: string]: boolean }
+interface ParticipantInfo {
+  id: string,
+  completed: boolean,
+  name: string
+}
+
+type ParticipantStatus = { [id: string]: ParticipantInfo }
 
 interface ActivityStatus {
   initiatorId: string,
   participants: ParticipantStatus
 }
 
+/**
+ * Simulates an activity initiated by one participant (initiator) 
+ * and completed by multiple participants (actors). The *initiator*
+ * sees a card showing completion status, and each *actor* sees
+ * a card either asking them to complete the task (by pressing
+ * a button) or confirming completion.
+ * 
+ * This uses Adaptive Cards Universal Action Model, and more
+ * specifically the "refresh" action: a first empty placeholder card
+ * is sent to everyone, with a "refresh" action embedded. This
+ * triggers each of the clients to callback the backend, at which
+ * time the card everyone should see is displayed
+ */
 export class ActivityHandler {
+  /**
+   * In memory storage of all ongoing activities. In real-life
+   * this might be replaced by either a centralized cache or
+   * storage to support distribution and make activities
+   * resilient.
+   */
   private activities: { [key: string]: ActivityStatus } = {}
-  constructor(private deps: IDependencies) {
-  }
 
+  constructor(private deps: IDependencies) { }
 
+  /**
+   * Triggered when a participant starts an activity.
+   * @param context 
+   */
   async startActivityAsync(context: TurnContext) {
     const members = await TeamsInfo.getMembers(context);
     const ids = members.map((member) => member.id);
-    const activityId = uuid()
     const initiatorId = context.activity.from.id
-    const participants: ParticipantStatus = {}
-    ids.forEach(id => participants[id] = false)
-    this.activities[activityId] = {
-      initiatorId,
-      participants
-    }
+    const activityId = this.createAndStoreNewActivity(members, initiatorId);
     const card = CardFactory.adaptiveCard(
-      activityRefreshCard(activityId, initiatorId, ids)
+      // this card is a placeholder that just uses the AC
+      // refresh action to retrieve the actual card for this
+      // specific user.
+      activityRefreshCard(activityId, ids)
     );
     await context.sendActivity({ attachments: [card] });
   }
 
-  private getCard(activityId: string, initiatorId: string, fromId: string) {
-    const activity = this.activities[activityId]
-    if (initiatorId === fromId) {
-      return activityStatusCard(Object.keys(activity.participants).filter(id => activity.participants[id]))
-    } else if (!activity.participants[fromId]) {
-      return activityTaskCard(activityId, initiatorId)
-    } else {
-      return confirmActionCard(`You completed the activity`)
-    }
-  }
-
+  /**
+   * Called when the refresh card placeholder invokes the backend. This
+   * method determine the card that should be displayed based on the
+   * participant role and status, then sends it back. Then the client
+   * replaces the refresh card by the appropriate one.
+   * 
+   * @param context 
+   * @returns Card to be displayed to that particular user.
+   */
   async handleRefreshAsync(context: TurnContext): Promise<InvokeResponse> {
-    const initiatorId = context.activity.value.action.data.initiatorId
+    const currentUserId = context.activity.from.id
     const activityId = context.activity.value.action.data.activityId
-    const card = this.getCard(activityId, initiatorId, context.activity.from.id)
+    const card = this.getCard(activityId, currentUserId)
     return {
       status: 200,
       body: {
@@ -61,17 +84,87 @@ export class ActivityHandler {
     };
   }
 
+  /**
+   * Invoked when someone completes the activity. This updates the
+   * activity in storage, then triggers a refresh for everyone
+   * @param context 
+   */
   async completeActivityAsync(context: TurnContext) {
-    const initiatorId = context.activity.value.initiatorId
     const activityId = context.activity.value.activityId
     const participantId = context.activity.from.id
-    this.activities[activityId].participants[participantId] = true
+    this.activities[activityId].participants[participantId].completed = true
+    await this.triggerRefreshAsync(context);
+  }
+
+  /**
+   * Triggers a refresh for all participants, by updating the
+   * activity card with a refresh card, which itself will invoke
+   * the backend to retrieve the card specific to each user.
+   * The typical round trip is < .5s
+   * @param context 
+   */
+  private async triggerRefreshAsync(context: TurnContext) {
+    const activityId = context.activity.value.activityId
     const members = await TeamsInfo.getMembers(context);
     const ids = members.map((member) => member.id);
-    const card = activityRefreshCard(activityId, initiatorId, ids)
-    const message = MessageFactory.attachment(CardFactory.adaptiveCard(card))
-    message.id = context.activity.replyToId
-    this.deps.logger.debug(`Update activity ${message.id}`)
-    await context.updateActivity(message)
+    const card = activityRefreshCard(activityId, ids);
+    const message = MessageFactory.attachment(CardFactory.adaptiveCard(card));
+    message.id = context.activity.replyToId;
+    this.deps.logger.debug(`Update activity ${message.id}`);
+    await context.updateActivity(message);
+  }
+
+  /**
+ * Create a new activity and store it in memory.
+ * 
+ * @param members users participating to the activity
+ * @param initiatorId Id of the initiator
+ * @returns a unique activity id used to interact with storage
+ */
+  private createAndStoreNewActivity(members: TeamsChannelAccount[], initiatorId: string) {
+    const activityId = uuid();
+    const participants: ParticipantStatus = {};
+    members.forEach(member => participants[member.id] = {
+      completed: false,
+      id: member.id,
+      name: member.name
+    });
+    this.activities[activityId] = {
+      initiatorId,
+      participants
+    };
+    return activityId;
+  }
+
+  /**
+   * Find the card that should be displayed to a particular
+   * user based on their status.
+   * 
+   * @param activityId Points to the activity that is refreshed
+   * @param initiatorId Id of initiator
+   * @param fromId Id of the user for which the client is refreshing card
+   * @returns 
+   */
+  private getCard(activityId: string, fromId: string) {
+    const activity = this.activities[activityId]
+    if (!activity) {
+      return confirmActionCard(`Activity not found: ${activityId}`)
+    }
+    const initiatorId = activity.initiatorId
+    if (initiatorId === fromId) {
+      // For initiator we display status
+      const usersWhoCompleted = Object.values(activity.participants)
+        .filter(participant => participant.completed)
+        .map(participant => participant.name)
+      return activityStatusCard(usersWhoCompleted)
+    } else if (!activity.participants[fromId].completed) {
+      // If participant didn't complete the activity yet
+      // we show them the activity card with a button
+      return activityTaskCard(activityId, initiatorId)
+    } else {
+      // If participant completed the activity we show a
+      // confirmation message.
+      return confirmActionCard(`You completed the activity`)
+    }
   }
 }

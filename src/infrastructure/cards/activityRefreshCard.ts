@@ -1,4 +1,4 @@
-export function activityRefreshCard(activityId: string, initiatorId: string, userIds: string[]) {
+export function activityRefreshCard(activityId: string, userIds: string[]) {
   return {
     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
     "type": "AdaptiveCard",
@@ -10,8 +10,7 @@ export function activityRefreshCard(activityId: string, initiatorId: string, use
         "title": "Submit",
         "verb": "startActivity",
         "data": {
-          activityId,
-          initiatorId
+          activityId
         }
       },
       userIds
