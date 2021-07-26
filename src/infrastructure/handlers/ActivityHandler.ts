@@ -1,9 +1,26 @@
-import { CardFactory, InvokeResponse, MessageFactory, TeamsChannelAccount, TeamsInfo, TurnContext } from "botbuilder";
-import { IDependencies } from "../BotActivityHandler";
-import { activityRefreshCard } from "../cards/activityRefreshCard";
-import { activityStatusCard } from "../cards/activityStatusCard";
-import { activityTaskCard } from "../cards/activityTaskCard";
+import {
+  CardFactory,
+  InvokeResponse,
+  MessageFactory,
+  TeamsChannelAccount,
+  TeamsInfo,
+  TurnContext
+} from "botbuilder";
 import { v4 as uuid } from "uuid"
+import { IDependencies } from "../BotActivityHandler";
+
+/**
+ * Adaptive cards used in this activity.
+ */
+
+// Placeholder card that will only trigger refresh to display the right card
+// to the user
+import { activityRefreshCard } from "../cards/activityRefreshCard";
+// Display status to the activity initiator
+import { activityStatusCard } from "../cards/activityStatusCard";
+// Request activity participants to complete the task
+import { activityTaskCard } from "../cards/activityTaskCard";
+// Confirm that activity was completed.
 import { confirmActionCard } from "../cards/confirmActionCard";
 
 interface ParticipantInfo {
