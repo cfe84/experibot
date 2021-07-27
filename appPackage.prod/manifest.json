@@ -15,12 +15,12 @@
     "outline": "outline.png"
   },
   "name": {
-    "short": "Experibot",
-    "full": "Experimental bot"
+    "short": "Experibot-prod",
+    "full": "Experimental bot (Prod)"
   },
   "description": {
-    "short": "Short description for Conversation Bot.",
-    "full": "Full description of Conversation Bot."
+    "short": "Prod version of experibot",
+    "full": "Prod version of experibot."
   },
   "accentColor": "#FFFFFF",
   "bots": [
