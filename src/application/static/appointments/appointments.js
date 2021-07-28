@@ -17,26 +17,14 @@ import { DateTime } from "../common/luxon.min.js"
     return await callBackendAsync("GET", "/api/appointments")
   }
 
-  function displayAppointments(appointments) {
-    appointmentsElt.innerHTML = ""
-    const header = {
-      elt: "tr",
-      parent: appointmentsElt,
-      children: ["Date", "Time", "Title", "Service type", ""].map(content => ({
-        elt: "th",
-        attributes: { className: "table-column" },
-        content
-      }))
-    }
-    createElement(header)
-
-    const appointmentsListElt = appointments.sort((a, b) => a.date.localeCompare(b.date)).map(appointment => {
+  function displayAppointments(appointments, parent) {
+    const appointmentsListElt = appointments.map(appointment => {
       const date = DateTime.fromISO(appointment.date)
       const row = {
         elt: "tr",
-        parent: appointmentsElt,
+        parent,
         children: [
-          { elt: "td", content: `${date.toLocaleString({ month: 'long', day: 'numeric' })}` },
+          { elt: "td" },
           { elt: "td", content: date.toLocaleString(DateTime.TIME_SIMPLE) },
           { elt: "td", content: appointment.title },
           { elt: "td", content: appointment.serviceType },
@@ -58,6 +46,45 @@ import { DateTime } from "../common/luxon.min.js"
       return row
     })
     createElement(appointmentsListElt)
+  }
+
+  function loadAllAppointments(appointments) {
+    appointments = appointments.sort((a, b) => a.date.localeCompare(b.date))
+    const dates = appointments
+      .map(apt => DateTime.fromISO(apt.date).toLocaleString({ month: 'long', day: 'numeric' }))
+      .filter((v, i, a) => a.indexOf(v) === i)
+    appointmentsElt.innerHTML = ""
+    const header = {
+      elt: "tr",
+      parent: appointmentsElt,
+      children: ["Date", "Time", "Title", "Service type", ""].map(content => ({
+        elt: "th",
+        attributes: { className: "table-column" },
+        content
+      }))
+    }
+    // createElement(header)
+    dates.forEach(d => {
+      createElement({
+        elt: "tr",
+        parent: appointmentsElt,
+        children: [
+          {
+            elt: "td",
+            attributes: {
+              className: "font-title2",
+              colspan: 5
+            },
+            content: d
+          }
+        ]
+      })
+      const appointmentsOnThisDate = appointments
+        .filter(apt => DateTime.fromISO(apt.date).toLocaleString({ month: 'long', day: 'numeric' }) === d)
+      displayAppointments(appointmentsOnThisDate, appointmentsElt)
+    })
+
+    // displayAppointments(appointments, appointmentsElt)
   }
 
   const setModalVisibility = (visible) => {
@@ -122,7 +149,7 @@ import { DateTime } from "../common/luxon.min.js"
   const refreshAppointments = () => {
     getAppointmentsAsync().then((appointmentsAsString) => {
       const appointments = JSON.parse(appointmentsAsString)
-      displayAppointments(appointments)
+      loadAllAppointments(appointments)
     })
   }
 

@@ -91,9 +91,9 @@
   ],
   "staticTabs": [
     {
-      "contentUrl": "https://experibot.azurewebsites.net:443/bookings/?theme={theme}",
+      "contentUrl": "https://experibot.azurewebsites.net/appointments/?theme={theme}",
       "entityId": "StaticTab",
-      "name": "My bookings static tab",
+      "name": "Appointments",
       "scopes": [
         "personal",
         "team"
