@@ -19,7 +19,7 @@
           This is a list of the appointments currently planned:
         </div>
         <div class="right">
-          <button id="btn-auth" class="button-primary">Create appointment</button>
+          <button id="btn-create" class="button-primary">Create appointment</button>
         </div>
       </div>
 
@@ -31,6 +31,34 @@
     </div>
   </div>
 
+  <div id="modal" class="modal-overlay theme-light surface" style="background-color: transparent; display: none;">
+    <div class="modal-background"></div>
+    <div class="modal-container theme-light panel">
+      <div class="font-title font-semibold" id="modal-title">Create appointment</div>
+      <p>
+        <span class="font-semibold">Service type</span><br>
+        <select id="form-service-type">
+
+        </select>
+      </p>
+      <p>
+        <span class="font-semibold">Title</span><br>
+        <input id="form-title">
+      </p>
+      <p>
+        <span class="font-semibold">Date</span><br>
+        <input id="form-date">
+      </p>
+      <p>
+        <span class="font-semibold">Participants</span><br>
+        <input id="form-participants">
+      </p>
+      <p>
+        <button id="modal-btn-save" class="button-primary">Save</button>
+        <button id="modal-btn-cancel" class="button-secondary">Cancel</button>
+      </p>
+    </div>
+  </div>
 </body>
 
 </html>

@@ -8,6 +8,7 @@ import { BotApiHandler } from "../infrastructure/apiHandlers/BotApiHandler";
 import { IDependencies } from "../infrastructure/BotActivityHandler";
 import { LogHandler } from "../infrastructure/apiHandlers/LogHandler";
 import { AuthApiHandler } from "../infrastructure/apiHandlers/AuthApiHandler";
+import { MemoryStore } from "../infrastructure/MemoryStore";
 
 require("dotenv").config();
 if (!process.env.BotId || !process.env.BotPassword) {
@@ -25,9 +26,11 @@ const authenticator = new AADAuthenticator(
   process.env["AADClientSecret"] as string
 );
 const identityManager = new IdentityManager({ authenticator });
+const store = new MemoryStore()
 
 const deps: IDependencies = {
   identityManager,
+
   logger
 }
 
@@ -46,6 +49,6 @@ server.use(express.text())
 
 
 new LogHandler(server)
-new AppointmentHandler(server)
+new AppointmentHandler(server, { appointmentStore: store, serviceTypeStore: store })
 new BotApiHandler(server, deps)
 new AuthApiHandler(server, deps)
