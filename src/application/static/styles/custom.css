@@ -23,3 +23,7 @@ div.inline {
 div.right {
   float: right;
 }
+
+.table-column {
+  min-width: 90px;
+}

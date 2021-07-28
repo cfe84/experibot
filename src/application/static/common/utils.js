@@ -12,7 +12,7 @@ export const getQueryParameters = (sep = "?") => {
     return null;
   }
   const components = queryParamsString.split("&");
-  const res= {};
+  const res = {};
   components.forEach((component) => {
     const splat = component.split("=", 2);
     res[splat[0]] = decodeURIComponent(splat[1]);
@@ -43,4 +43,31 @@ export const callBackendAsync = (method, url, body, contentType) => {
     }
     request.send(body)
   })
+}
+
+export const createElement = (spec) => {
+  if (Array.isArray(spec)) {
+    return spec.map(childSpec => createElement(childSpec))
+  }
+  const type = spec.elt || spec.element || spec.tag
+  const { attributes, children, content, parent } = spec
+  const element = document.createElement(type)
+  if (content) {
+    element.innerHTML = content
+  }
+  if (attributes) {
+    Object.keys(attributes).forEach(attribute => {
+      element[attribute] = attributes[attribute]
+    })
+  }
+  if (children) {
+    children.forEach(childSpec => {
+      childSpec.parent = element
+      createElement(childSpec)
+    })
+  }
+  if (parent) {
+    parent.appendChild(element)
+  }
+  return element
 }

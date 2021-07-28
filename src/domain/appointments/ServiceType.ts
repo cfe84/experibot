@@ -1,4 +1,4 @@
-export interface Product {
+export interface ServiceType {
   name: string,
   price: number
 }
