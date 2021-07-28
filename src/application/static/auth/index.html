@@ -6,6 +6,8 @@
     and https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/task-modules/task-modules-bots
   -->
   <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="/styles/msteams-16.css">
+  <link rel="stylesheet" type="text/css" href="/styles/custom.css">
   <style>
     body {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -14,31 +16,38 @@
   </style>
 </head>
 
-<body>
-  <p>
-  <h2>User information</h2>
-  <b>context.userLicenseType</b>: <span id="teamsUserLicenseType"></span><br />
-  <b>context.tenantSku</b>: <span id="teamsTenantSku"></span><br />
-  <b>context.userObjectId</b>: <span id="teamsUserId"></span><br />
-  <b>context.userPrincipalName</b>: <span id="userName"></span><br />
-  <b>backend activity.from.id</b>: <span id="userId"></span><br />
-  <b>msa</b>: <span id="msa"></span><br />
-  </p>
-  <p>
-  <h2>Authentication</h2>
-  <button id="authenticate">Authenticate to MSFT AAD</button></br>
-  <button id="authenticateb2c">Authenticate to AAD B2C</button>
-  </p>
-  <p>
-  <h2>Local storage & cookies</h2>
-  <button id="setLocalStorage">Set localStorage</button>
-  <span id="localStorageSpan"></span>
-  </p>
-  <button id="close">Close</button>
-  <p>
-    <span id="error"></span>
-  </p>
+<body class="theme-light">
+  <div class="taskModule">
+    <p>
+    <div class="font-semibold font-title">User information</div>
+    <b>context.userLicenseType</b>: <span id="teamsUserLicenseType"></span><br />
+    <b>context.tenantSku</b>: <span id="teamsTenantSku"></span><br />
+    <b>context.tenantId</b>: <span id="tenantId"></span><br />
+    <b>context.userObjectId</b>: <span id="teamsUserId"></span><br />
+    <b>context.userPrincipalName</b>: <span id="userName"></span><br />
+    <b>backend activity.from.id</b>: <span id="userId" style="word-wrap: break-word;"></span><br />
+    <b>msa</b>: <span id="msa"></span><br />
+    </p>
+    <p>
+    <div class="font-semibold font-title">Authentication</div>
+    <button class="button-primary" id="authenticateb2c">Authenticate to AAD B2C</button>
+    <button class="button-secondary" id="authenticate">Authenticate to MSFT AAD</button>
+    </p>
+    <p>
+    <div class="font-semibold font-title">Local storage & cookies</div>
+    <button class="button-secondary" id="setLocalStorage">Set localStorage</button>
+    <span id="localStorageSpan"></span>
+    </p>
+    <button class="button-secondary" id="close" class="ts-btn ts-btn-fluent ts-btn-fluent-primary">Close</button>
+    <p>
+      <span id="error"></span>
+    </p>
+    <p>
+    <pre id="context"></pre>
+    </p>
+  </div>
   <script>
+
     const errorSpan = document.getElementById("error")
     const getQueryParameters = () => {
       const queryParamsString = window.location.search.substr(1);
@@ -179,11 +188,16 @@
 
     const fillUserFields = (context) => {
       const teamsUserId = document.getElementById("teamsUserId")
+      const tenantId = document.getElementById("tenantId")
       const userId = document.getElementById("userId")
       const userName = document.getElementById("userName")
+      const contextPre = document.getElementById("context")
       teamsUserId.innerHTML = context.userObjectId
       userName.innerHTML = context.userPrincipalName
       userId.innerHTML = queryParameters["userid"]
+      tenantId.innerHTML = context.tid
+      contextPre.innerHTML = JSON.stringify(context, null, 2)
+      microsoftTeams.teamsfx.TeamsUserCredential.getUserInfo().then((info) => contextPre.innerHTML = JSON.stringify(info, null, 2))
     }
 
     microsoftTeams.initialize(() => {

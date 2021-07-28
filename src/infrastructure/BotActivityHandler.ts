@@ -13,15 +13,14 @@ import { } from "botbuilder-dialogs";
 
 import { ILogger } from "../domain/ILogger";
 import { IdentityManager } from "../domain/IdentityManager";
-import { ActivityHandler } from "./handlers/ActivityHandler";
-import { CommandHandler } from "./handlers/CommandHandler";
-import { MessagingExtensionHandler } from "./handlers/MessagingExtensionDemoHandler";
-import { RefreshHandler } from "./handlers/RefreshHandler";
-import { AuthenticationHandler } from "./handlers/AuthenticationInAppHandler";
-import { ChainedTaskModulesHandler } from "./handlers/ChainedTaskModulesHandler";
-import e = require("express");
-import { BubbleDemoHandler } from "./handlers/BubbleDemoHandler";
-import { TargetedBubbleHandler } from "./handlers/TargetedBubbleHandler";
+import { ActivityHandler } from "./botHandlers/ActivityHandler";
+import { CommandHandler } from "./botHandlers/CommandHandler";
+import { MessagingExtensionHandler } from "./botHandlers/MessagingExtensionDemoHandler";
+import { RefreshHandler } from "./botHandlers/RefreshHandler";
+import { AuthenticationHandler } from "./botHandlers/AuthenticationInAppHandler";
+import { ChainedTaskModulesHandler } from "./botHandlers/ChainedTaskModulesHandler";
+import { BubbleDemoHandler } from "./botHandlers/BubbleDemoHandler";
+import { TargetedBubbleHandler } from "./botHandlers/TargetedBubbleHandler";
 
 export interface IDependencies {
   logger: ILogger;

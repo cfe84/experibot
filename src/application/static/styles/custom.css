@@ -1,0 +1,25 @@
+html, body, div.surface, div.panel {
+  height: 100%;
+  margin: 0;
+}
+
+div.taskModule {
+  max-width: 460px;
+  margin: auto;
+}
+
+div.panel {
+  padding: 15px;
+}
+
+div.full {
+  width: 100%;
+}
+
+div.inline {
+  display: inline-block;
+}
+
+div.right {
+  float: right;
+}

@@ -31,7 +31,19 @@
         "groupchat",
         "team"
       ],
-      "commandLists": [],
+      "commandLists": [
+        {
+          "commands": [
+            {
+              "description": "Get help",
+              "title": "Help"
+            }
+          ],
+          "scopes": [
+            "personal"
+          ]
+        }
+      ],
       "supportsFiles": false,
       "isNotificationOnly": false
     }

@@ -1,0 +1,43 @@
+<html>
+
+<head>
+  <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
+  <script type="module" src="appointments.js"></script>
+  <link rel="stylesheet" type="text/css" href="/styles/msteams-16.css">
+  <link rel="stylesheet" type="text/css" href="/styles/custom.css">
+  </link>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</head>
+
+<body class="theme-light">
+  <div class="surface">
+    <div class="panel">
+      <div class="font-semibold font-title">Appointments</div>
+      <div class="full">
+        <div class="inline">
+          This is a list of the appointments currently planned:
+        </div>
+        <div class="right">
+          <button id="btn-auth" class="button-primary">Create appointment</button>
+        </div>
+      </div>
+
+      <div>
+        <table>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Title</th>
+            <th>Product</th>
+            <th>Attendees</th>
+            <th></th>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

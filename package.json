@@ -12,7 +12,8 @@
     "bns": "npm run build && npm start",
     "start": "node dist/application/index.js",
     "watch": "nodemon ./index.js",
-    "build": "tsc && ncp src/application/static/ dist/application/static/",
+    "copy-static": "echo Copy static && ncp src/application/static/ dist/application/static/",
+    "build": "echo Build && tsc && npm run copy-static",
     "clean": "rimraf dist/",
     "rebuild": "npm run clean && npm run build",
     "prepublish": "npm run rebuild",
@@ -25,6 +26,7 @@
     "express": "~4.17.1",
     "html-entities": "^1.3.1",
     "node-fetch": "^2.6.1",
+    "react": "^17.0.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
@@ -32,6 +34,7 @@
     "@types/mocha": "^8.2.2",
     "@types/node": "^14.14.37",
     "@types/node-fetch": "^2.5.10",
+    "@types/react": "^17.0.15",
     "@types/should": "^13.0.0",
     "@types/uuid": "^8.3.0",
     "mocha": "^8.3.2",

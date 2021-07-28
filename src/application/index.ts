@@ -1,38 +1,18 @@
 import * as express from "express";
-import { BotFrameworkAdapter, TeamsInfo, TurnContext } from "botbuilder";
-import { BotActivityHandler } from "../infrastructure/BotActivityHandler";
-import { MemoryStore } from "../infrastructure/MemoryStore";
-import path = require("path");
+import * as path from "path";
 import { ConsoleLogger, LogLevel } from "../infrastructure/ConsoleLogger";
-import { CodeExchange as CodeExchange } from "../domain/CodeExchange";
 import { AADAuthenticator } from "../infrastructure/AADAuthenticator";
 import { IdentityManager } from "../domain/IdentityManager";
+import { AppointmentHandler } from "../infrastructure/apiHandlers/AppointmentHandler";
+import { BotApiHandler } from "../infrastructure/apiHandlers/BotApiHandler";
+import { IDependencies } from "../infrastructure/BotActivityHandler";
+import { LogHandler } from "../infrastructure/apiHandlers/LogHandler";
+import { AuthApiHandler } from "../infrastructure/apiHandlers/AuthApiHandler";
 
 require("dotenv").config();
 if (!process.env.BotId || !process.env.BotPassword) {
   throw Error(`Missing BotId or BotPassword in environment variables`);
 }
-
-const adapter = new BotFrameworkAdapter({
-  appId: process.env.BotId,
-  appPassword: process.env.BotPassword,
-});
-
-adapter.onTurnError = async (context, error) => {
-  console.error(`\n [onTurnError] unhandled error: ${error}`);
-
-  await context.sendTraceActivity(
-    "OnTurnError Trace",
-    `${error}`,
-    "https://www.botframework.com/schemas/error",
-    "TurnError"
-  );
-
-  await context.sendActivity("The bot encountered an error or bug.");
-  await context.sendActivity(
-    "To continue to run this bot, please fix the bot source code."
-  );
-};
 
 const logger = new ConsoleLogger(
   process.env.LOGLEVEL?.toUpperCase() === "DEBUG"
@@ -46,56 +26,26 @@ const authenticator = new AADAuthenticator(
 );
 const identityManager = new IdentityManager({ authenticator });
 
-const botActivityHandler = new BotActivityHandler({
-  logger,
+const deps: IDependencies = {
   identityManager,
-});
+  logger
+}
+
 const server = express();
 const port = process.env.port || process.env.PORT || 3978;
 server.listen(port, () => console.log(`Listening at http://localhost:${port}`));
 
-const staticContentPath = path.join(__dirname, "static");
-logger.debug(`Using static content in `, staticContentPath);
-server.use(express.static(staticContentPath));
+const staticContentPaths = [path.join(__dirname, "static"), path.join(__dirname, "scripts")]
+staticContentPaths.forEach(staticContentPath => {
+  logger.debug(`Using static content in `, staticContentPath);
+  server.use(express.static(staticContentPath));
+})
+
 server.use(express.json());
 server.use(express.text())
 
-server.post("/api/completeAuth", (req, res) => {
-  const mapping = req.body as CodeExchange;
-  identityManager
-    .exchangeNonceToIdentityAsync(
-      mapping.nonce,
-      mapping.code,
-      mapping.callbackUrl
-    )
-    .then((msa) => {
-      res.send(msa);
-      res.end();
-    });
-});
 
-server.post("/api/logs/log", (req, res) => {
-  const message = req.body;
-  console.log(message)
-  res.end();
-});
-
-server.post("/api/logs/error", (req, res) => {
-  const error = req.body;
-  console.error(error)
-  res.end();
-});
-
-// Listen for incoming requests.
-server.post("/api/messages", (req, res) => {
-  try {
-    adapter.processActivity(req, res, async (context: TurnContext) => {
-      // logger.debug(`Message: `, JSON.stringify(req.body, null, 2));
-      // Process bot activity
-      await botActivityHandler.run(context);
-    });
-  } catch (error) {
-    logger.error(`Failed to process message`, error);
-    logger.error(`Message was: `, JSON.stringify(req.body, null, 2));
-  }
-});
+new LogHandler(server)
+new AppointmentHandler(server)
+new BotApiHandler(server, deps)
+new AuthApiHandler(server, deps)

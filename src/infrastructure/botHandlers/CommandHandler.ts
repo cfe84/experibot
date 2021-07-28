@@ -1,10 +1,10 @@
 import { CardFactory, MessageFactory, TeamsInfo, TurnContext } from "botbuilder";
+import { userInfo } from "node:os";
 import { IDependencies } from "../BotActivityHandler";
 import { helpCard } from "../cards/helpCard";
 import { identityCard } from "../cards/identityCard";
 import { openTaskModuleCard } from "../cards/openTaskModuleCard";
 import { refreshCard } from "../cards/refreshCard";
-import * as signinCard from "../cards/signinCard.json";
 import { ActivityHandler } from "./ActivityHandler";
 import { BubbleDemoHandler } from "./BubbleDemoHandler";
 import { TargetedBubbleHandler } from "./TargetedBubbleHandler";
@@ -36,9 +36,6 @@ export class CommandHandler {
     switch (command) {
       case Actions.HELP:
         await this.helpActivityAsync(context, command);
-        break;
-      case Actions.SIGNIN:
-        await this.signInAsync(context);
         break;
       case Actions.SHOW_REFRESH:
         await this.showRefreshCardAsync(context);
@@ -108,7 +105,19 @@ export class CommandHandler {
 
   private async showTaskModuleAsync(context: TurnContext) {
     const card = CardFactory.adaptiveCard(openTaskModuleCard());
-    await context.sendActivity({ attachments: [card] });
+    this.deps.logger.log(`From: ${JSON.stringify(context.activity.from, null, 2)}`)
+    await context.sendActivity({
+      attachments: [card], suggestedActions: {
+        "actions": [
+          {
+            title: "green",
+            type: "imBack",
+            value: "green"
+          }
+        ],
+        to: [context.activity.from.id]
+      }
+    });
   }
 
   private async showRefreshCardAsync(context: TurnContext) {
@@ -118,11 +127,6 @@ export class CommandHandler {
     const card = CardFactory.adaptiveCard(
       refreshCard("Initial message", member.name, ids)
     );
-    await context.sendActivity({ attachments: [card] });
-  }
-  async signInAsync(context: TurnContext): Promise<void> {
-    // https://github.com/microsoft/BotBuilder-Samples/blob/main/samples/javascript_nodejs/46.teams-auth/bots/dialogBot.js
-    const card = CardFactory.adaptiveCard({ signinCard, });
     await context.sendActivity({ attachments: [card] });
   }
 
