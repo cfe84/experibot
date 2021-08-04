@@ -29,7 +29,7 @@ export const parseJwt = (jwtString) => {
   };
 };
 
-export const callBackendAsync = (method, url, body, contentType) => {
+export const callBackendAsync = (method, url, body, headersOrContentType) => {
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest()
     request.onreadystatechange = function () {
@@ -38,8 +38,17 @@ export const callBackendAsync = (method, url, body, contentType) => {
       }
     }
     request.open(method, url, true)
-    if (contentType) {
-      request.setRequestHeader("content-type", contentType)
+    if (headersOrContentType) {
+      if (typeof headersOrContentType === "object") {
+        Object.values(headersOrContentType).forEach(header => {
+          request.setRequestHeader(header, headersOrContentType[header])
+        })
+      } else {
+        request.setRequestHeader("content-type", headersOrContentType)
+      }
+    }
+    if (typeof body === "object") {
+      body = JSON.stringify(body)
     }
     request.send(body)
   })

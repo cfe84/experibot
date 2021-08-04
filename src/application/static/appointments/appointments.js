@@ -17,6 +17,27 @@ import { DateTime } from "../common/luxon.min.js"
     return await callBackendAsync("GET", "/api/appointments")
   }
 
+  async function createMeetingAsync(date, subject) {
+    const body = {
+      "startDateTime": date.toISOString(),
+      "endDateTime": date.plus({ hours: 1 }).toISOString(),
+      "subject": subject,
+      "lobbyBypassSettings": {
+        "scope": "organization",
+        "isDialInBypassEnabled": false
+      }
+    }
+    const meeting = await callBackendAsync(
+      "POST",
+      "https://graph.microsoft.com/v1.0/me/onlineMeetings",
+      body,
+      {
+        "content-type": "application/json"
+      })
+    console.log(JSON.stringify(meeting, null, 2))
+    return meeting
+  }
+
   function displayAppointments(appointments, parent) {
     const appointmentsListElt = appointments.map(appointment => {
       const date = DateTime.fromISO(appointment.date)

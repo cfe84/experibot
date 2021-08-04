@@ -29,13 +29,14 @@ export class AADAuthenticator implements IAuthenticator {
     private tenantId: string,
     private clientId: string,
     private clientSecret: string
-  ) {}
+  ) { }
+
   async exchangeCodeForTokensAsync(
     code: string,
     callbackUrl: string
   ): Promise<Tokens> {
     const url = `https://login.microsoftonline.com/${this.tenantId}/oauth2/v2.0/token`;
-    const body = `grant_type=authorization_code&client_id=${this.clientId}&client_secret=${this.clientSecret}&scope=https://graph.microsoft.com/User.Read openid profile email&code=${code}&redirect_uri=${callbackUrl}`;
+    const body = `grant_type=authorization_code&client_id=${this.clientId}&client_secret=${this.clientSecret}&scope=https://graph.microsoft.com/User.Read/ openid profile email&code=${code}&redirect_uri=${callbackUrl}`;
     const res = await fetch(url, {
       method: "POST",
       body,
@@ -48,4 +49,17 @@ export class AADAuthenticator implements IAuthenticator {
       idToken: jwt,
     };
   }
+
+  async acquireClientToken(): Promise<string> {
+    const url = `https://login.microsoftonline.com/${this.tenantId}/oauth2/v2.0/token`;
+    const body = `grant_type=client_credentials&client_id=${this.clientId}&client_secret=${this.clientSecret}&scope=https://graph.microsoft.com/Calls.JoinGroupCall.All/.default openid`;
+    const res = await fetch(url, {
+      method: "POST",
+      body,
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+    });
+    const tokens = (await res.text());
+    return tokens
+  }
+
 }
