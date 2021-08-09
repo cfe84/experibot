@@ -6,12 +6,14 @@ interface IIdentityManagerDependencies {
 }
 
 export class IdentityManager {
-  constructor(private deps: IIdentityManagerDependencies) {}
+  constructor(private deps: IIdentityManagerDependencies) { }
 
-  // Store a mapping between nonce and user id
+  // Store a mapping between nonce and MRI
   private nonceMapping: { [nonce: string]: string } = {};
-  // Store a mapping between user id and identity
+  // Store a mapping between user id and MRI
   private identityMapping: { [nonce: string]: string } = {};
+  // Store a mapping between user id and MRI
+  private upnMapping: { [nonce: string]: string } = {};
 
   generateNonce(userId: string): string {
     const nonce = uuid();

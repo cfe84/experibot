@@ -7,6 +7,7 @@ import { openTaskModuleCard } from "../cards/openTaskModuleCard";
 import { refreshCard } from "../cards/refreshCard";
 import { ActivityHandler } from "./ActivityHandler";
 import { BubbleDemoHandler } from "./BubbleDemoHandler";
+import { PaymentInMeetingHandler } from "./PaymentInMeetingHandler";
 import { TargetedBubbleHandler } from "./TargetedBubbleHandler";
 
 const Actions: { [key: string]: string } = {
@@ -23,6 +24,7 @@ const Actions: { [key: string]: string } = {
   MONITOR: "monitor participants"
 };
 const COMPLETE_ACTIVITY = "complete activity"
+const COMPLETE_PAYMENT = "complete payment"
 
 export class CommandHandler {
   static Actions = Actions
@@ -30,7 +32,8 @@ export class CommandHandler {
   constructor(private deps: IDependencies,
     private activityHandler: ActivityHandler,
     private bubbleDemoHandler: BubbleDemoHandler,
-    private targetedBubbleDemoHandler: TargetedBubbleHandler) { }
+    private targetedBubbleDemoHandler: TargetedBubbleHandler,
+    private paymentHandler: PaymentInMeetingHandler) { }
 
   async handleCommand(command: string, context: TurnContext) {
     switch (command) {

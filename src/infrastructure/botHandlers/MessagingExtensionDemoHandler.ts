@@ -12,6 +12,7 @@ export class MessagingExtensionHandler {
     action: MessagingExtensionAction
   ): Promise<MessagingExtensionActionResponse> {
     this.deps.logger.debug(`Received fetch from messaging extension action`);
+    this.deps.logger.debug(context.activity)
     return {
       task: {
         type: "continue",
@@ -32,7 +33,7 @@ export class MessagingExtensionHandler {
     this.deps.logger.debug(`Received messaging extension submit`);
     this.deps.logger.debug(
       `commandId: ${action.commandId}, data: `,
-      action.data
+      action
     );
 
     const command = action.data.text
