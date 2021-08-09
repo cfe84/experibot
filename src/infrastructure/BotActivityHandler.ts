@@ -174,7 +174,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
     if (action.commandId === "demoAction") {
       return this.messagingExtensionHandler.showMessageExtension(context, action)
     } else if (action.commandId === "triggerPayment") {
-      return this.paymentHandler.showMessagingExtension(context, action)
+      return this.paymentHandler.handleMessagingExtensionRequest(context, action)
     } else {
       throw Error("Unknown messaging extension command: " + context.activity.value.commandId)
     }
@@ -185,7 +185,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
     action: MessagingExtensionAction
   ): Promise<MessagingExtensionActionResponse> {
     if (action.commandId === "triggerPayment") {
-      return this.paymentHandler.paymentRequestSubmitted(context, action)
+      return this.paymentHandler.handleMessagingExtensionRequest(context, action)
     } else {
       return this.messagingExtensionHandler.defaultMessageExtensionSubmitted(context, action)
     }

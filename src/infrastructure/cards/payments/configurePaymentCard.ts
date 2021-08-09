@@ -49,7 +49,10 @@ export function configurePaymentCard(users: User[], products: Product[]) {
       {
         "type": "Action.Submit",
         "title": "Send charge",
-        "associatedInputs": "auto"
+        "associatedInputs": "auto",
+        data: {
+          action: "sendPaymentRequest"
+        }
       }
     ]
   };

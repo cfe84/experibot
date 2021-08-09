@@ -4,6 +4,7 @@ import {
   MessageFactory,
   MessagingExtensionAction,
   MessagingExtensionActionResponse,
+  TaskModuleContinueResponse,
   TaskModuleRequest,
   TaskModuleResponse,
   TeamsChannelAccount,
@@ -14,6 +15,7 @@ import { v4 as uuid } from "uuid"
 import { IDependencies } from "../BotActivityHandler";
 import { configurePaymentCard } from "../cards/payments/configurePaymentCard";
 import { confirmPaymentCard } from "../cards/payments/confirmPaymentCard";
+import { jitCard } from "../cards/payments/jitCard";
 import { paymentRefreshCard } from "../cards/payments/paymentRefreshCard";
 import { paymentRequestedCard } from "../cards/payments/paymentRequestedCard";
 import { paymentStatusCard } from "../cards/payments/paymentStatusCard";
@@ -48,12 +50,35 @@ export class PaymentInMeetingHandler {
 
   constructor(private deps: IDependencies) { }
 
+  async handleMessagingExtensionRequest(
+    context: TurnContext,
+    action: MessagingExtensionAction
+  ): Promise<MessagingExtensionActionResponse> {
+    if (!context.activity.value?.data?.action ||
+      context.activity.value?.data?.action === "configurePayment") {
+      return this.showMessagingExtension(context, action)
+    } else {
+      return this.paymentRequestSubmitted(context, action)
+    }
+  }
+
   async showMessagingExtension(
     context: TurnContext,
     action: MessagingExtensionAction
   ): Promise<MessagingExtensionActionResponse> {
     this.deps.logger.debug(`Starting payment process`);
-    const members = await TeamsInfo.getMembers(context);
+    let members: TeamsChannelAccount[]
+    try {
+      members = await TeamsInfo.getMembers(context);
+    } catch (err) {
+      if (err.message.indexOf("The bot is not part of the conversation roster") >= 0) {
+        this.deps.logger.log("App is not installed. Showing JIT card")
+        return this.displayJitInstallCard()
+      } else {
+        this.deps.logger.error(`Couldn't retrieve users.`, err)
+        return {}
+      }
+    }
     const users = members.map((act) => ({
       name: act.name,
       id: act.id
@@ -227,5 +252,22 @@ export class PaymentInMeetingHandler {
       // confirmation message.
       return confirmPaymentCard(`${paymentRequest.selectedProduct.name} for $${paymentRequest.selectedProduct.price}`)
     }
+  }
+
+  private displayJitInstallCard(): MessagingExtensionActionResponse {
+    this.deps.logger.debug(`JIT install card sent.`);
+    const card = CardFactory.adaptiveCard(jitCard());
+
+    return {
+      task: {
+        type: "continue",
+        value: {
+          card: card,
+          height: 130,
+          title: 'Just in time installer',
+          width: 400
+        }
+      } as TaskModuleContinueResponse
+    } as MessagingExtensionActionResponse;
   }
 }
