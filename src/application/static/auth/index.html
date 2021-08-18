@@ -38,7 +38,15 @@
     <button class="button-secondary" id="setLocalStorage">Set localStorage</button>
     <span id="localStorageSpan"></span>
     </p>
-    <button class="button-secondary" id="close" class="ts-btn ts-btn-fluent ts-btn-fluent-primary">Close</button>
+    <p>
+    <div class="font-semibold font-title">Redirect</div>
+    <input id="redirectUrl" />
+    <button class="button-secondary" id="redirectButton">Redirect</button>
+    </p>
+    <p>
+      <span id="localStorageSpan"></span>
+      <button class="button-secondary" id="close" class="ts-btn ts-btn-fluent ts-btn-fluent-primary">Close</button>
+    </p>
     <p>
       <span id="error"></span>
     </p>
@@ -186,6 +194,16 @@
         "Local storage is: " + localStorage.getItem("myvalue");
     };
 
+    const attachRedirect = () => {
+      const redirectInput = document.getElementById("redirectUrl")
+      const redirectButton = document.getElementById("redirectButton")
+
+      redirectButton.onclick = () => {
+        const url = redirectInput.value
+        window.location.assign(url)
+      }
+    }
+
     const fillUserFields = (context) => {
       const teamsUserId = document.getElementById("teamsUserId")
       const tenantId = document.getElementById("tenantId")
@@ -203,6 +221,7 @@
     microsoftTeams.initialize(() => {
       microsoftTeams.getContext((context) => {
         attachAuthButtons(context);
+        attachRedirect();
         fillUserFields(context);
         console.log(JSON.stringify(context, null, 2))
       });
