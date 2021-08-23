@@ -3,6 +3,7 @@ import { userInfo } from "node:os";
 import { IDependencies } from "../BotActivityHandler";
 import { helpCard } from "../cards/helpCard";
 import { identityCard } from "../cards/identityCard";
+import { openAuthCard } from "../cards/auth-popup/openAuthCard";
 import { openTaskModuleCard } from "../cards/openTaskModuleCard";
 import { refreshCard } from "../cards/refreshCard";
 import { ActivityHandler } from "./ActivityHandler";
@@ -13,6 +14,7 @@ import { TargetedBubbleHandler } from "./TargetedBubbleHandler";
 const Actions: { [key: string]: string } = {
   SIGNIN: "signin",
   SHOW_TASK_MODULE: "show task module",
+  SHOW_AUTH_POPUP: "show auth popup",
   SHOW_BUBBLE: "show bubble",
   SHOW_TARGETED_BUBBLE: "show targeted bubble",
   SHOW_BUBBLE_CLOSE: "show closing bubble",
@@ -24,7 +26,6 @@ const Actions: { [key: string]: string } = {
   MONITOR: "monitor participants"
 };
 const COMPLETE_ACTIVITY = "complete activity"
-const COMPLETE_PAYMENT = "complete payment"
 
 export class CommandHandler {
   static Actions = Actions
@@ -45,6 +46,9 @@ export class CommandHandler {
         break;
       case Actions.SHOW_TASK_MODULE:
         await this.showTaskModuleAsync(context);
+        break;
+      case Actions.SHOW_AUTH_POPUP:
+        await this.showAuthPopupAsync(context);
         break;
       case Actions.SHOW_TARGETED_BUBBLE:
         await this.targetedBubbleDemoHandler.showTargetedBubbleAsync(context);
@@ -72,6 +76,18 @@ export class CommandHandler {
       default:
         await this.helpActivityAsync(context, command);
     }
+  }
+
+  async showAuthPopupAsync(context: TurnContext) {
+    const card = CardFactory.adaptiveCard(openAuthCard());
+    // const card = CardFactory.actions([{
+    //   type: "signin",
+    //   title: "Click me for signin",
+    //   value: "https://rlay.feval.ca/auth/"
+    // }])
+    await context.sendActivity({
+      attachments: [card]
+    });
   }
 
   async meetingIsDoneAsync(context: TurnContext) {

@@ -7,6 +7,7 @@ import {
   TurnContext,
 } from "botbuilder-core";
 import {
+  SigninStateVerificationQuery,
   TeamsActivityHandler,
 } from "botbuilder";
 import { } from "botbuilder-dialogs";
@@ -91,6 +92,10 @@ export class BotActivityHandler extends TeamsActivityHandler {
     }
   }
 
+  async handleTeamsSigninVerifyState(context: TurnContext, query: SigninStateVerificationQuery): Promise<void> {
+    this.deps.logger.debug(JSON.stringify(context.activity, null, 2))
+  }
+
   async handleAdaptiveCardAction(context: TurnContext): Promise<InvokeResponse> {
     if (context.activity?.value?.action?.verb === INVOKE_REFRESH) {
       return await this.refreshHandler.handleRefreshCard(context);
@@ -149,6 +154,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
     context: TurnContext,
     nextAsync: () => Promise<void>
   ) {
+    this.deps.logger.debug(`Received a simple message`)
     TurnContext.removeRecipientMention(context.activity);
     if (
       !context.activity.text &&
