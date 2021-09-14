@@ -1,0 +1,61 @@
+<html>
+
+<head>
+  <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="/styles/msteams-16.css">
+  <link rel="stylesheet" type="text/css" href="/styles/custom.css">
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      padding: 15px;
+    }
+  </style>
+</head>
+
+<body class="theme-light">
+  <div class="taskModule">
+
+    <p>
+      This page does not have content, but it's showing stuff. It's supposed to load in an auth popup. When you click on
+      the close button, it calls
+    <pre id="pre-sample">microsoftTeams.authentication.notifySuccess("result");</pre>This sends an invoke that you can
+    then process with the backend.
+
+    <br />
+    You can customize the callback value here: <input id="input-callback" value="result" />
+    <br />
+    <button class="button-secondary" id="close" class="ts-btn ts-btn-fluent ts-btn-fluent-primary">Callback and
+      close</button>
+    </p>
+    <p>
+      <span id="error"></span>
+    </p>
+    <p>
+    <pre id="context"></pre>
+    </p>
+  </div>
+  <script>
+
+    const attachCloseButton = () => {
+      const closeBtn = document.getElementById("close");
+      const callbackInput = document.getElementById("input-callback");
+      const pre = document.getElementById("pre-sample")
+      closeBtn.onclick = () => {
+        microsoftTeams.authentication.notifySuccess(callbackInput.value);
+      };
+      callbackInput.onkeyup = () => {
+        const value = callbackInput.value
+        const sample = `microsoftTeams.authentication.notifySuccess("${value}");`
+        pre.innerText = sample
+      }
+    };
+
+
+    microsoftTeams.initialize(() => {
+
+    });
+    attachCloseButton();
+  </script>
+</body>
+
+</html>

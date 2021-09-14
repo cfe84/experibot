@@ -36,6 +36,18 @@ export function openTaskModuleCard() {
           module: "card",
         },
       },
+      {
+        type: "Action.Submit",
+        id: "fromage",
+        title: "Open auth popup",
+        verb: "openTaskModule",
+        data: {
+          msteams: {
+            type: "task/fetch",
+          },
+          module: "authentication",
+        },
+      },
     ],
   };
 }

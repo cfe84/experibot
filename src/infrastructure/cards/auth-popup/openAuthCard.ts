@@ -20,7 +20,7 @@ export function openAuthCard() {
           msteams: {
             type: "signin",
             title: "Click me for signin",
-            value: "https://rlay.feval.ca/auth/"
+            value: "https://rlay.feval.ca/authPopup/"
           },
           module: "authentication",
         },

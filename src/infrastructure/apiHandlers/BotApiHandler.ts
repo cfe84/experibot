@@ -1,4 +1,4 @@
-import { BotFrameworkAdapter, TurnContext } from "botbuilder";
+import { BotFrameworkAdapter, TeamsInfo, TurnContext } from "botbuilder";
 import { Application, Request, Response } from "express";
 import { BotActivityHandler, IDependencies } from "../BotActivityHandler";
 
@@ -26,10 +26,7 @@ export class BotApiHandler {
         "To continue to run this bot, please fix the bot source code."
       );
     };
-
-
     this.botActivityHandler = new BotActivityHandler(deps);
-
     app.post("/api/messages", this.handleBotMessages.bind(this))
   }
 

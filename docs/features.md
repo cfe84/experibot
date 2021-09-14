@@ -2,7 +2,7 @@
 
 ![Auth popup opened directly from the adaptive card](img/auth-popup-from-ac.gif)
 
-You can open auth popups directly from adaptive cards. Advantage of doing are:
+You can open auth popups directly from adaptive cards. Feature is documented [there](https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-actions?tabs=json#action-type-signin). Advantage of doing are:
 1. URL is displayed, which gives user the opportunity to validate that the page is not spoofed
 2. Page is not rendered in an iFrame.
 
