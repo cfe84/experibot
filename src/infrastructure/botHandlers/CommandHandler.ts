@@ -10,11 +10,13 @@ import { ActivityHandler } from "./ActivityHandler";
 import { BubbleDemoHandler } from "./BubbleDemoHandler";
 import { PaymentInMeetingHandler } from "./PaymentInMeetingHandler";
 import { TargetedBubbleHandler } from "./TargetedBubbleHandler";
+import { configureAuthPopup } from "../cards/auth-popup/configureAuthPopup";
 
 const Actions: { [key: string]: string } = {
   SIGNIN: "signin",
   SHOW_TASK_MODULE: "show task module",
   SHOW_AUTH_POPUP: "show auth popup",
+  SHOW_CONFIGURABLE_AUTH_POPUP: "show configurable auth popup",
   SHOW_BUBBLE: "show bubble",
   SHOW_TARGETED_BUBBLE: "show targeted bubble",
   SHOW_BUBBLE_CLOSE: "show closing bubble",
@@ -50,6 +52,9 @@ export class CommandHandler {
       case Actions.SHOW_AUTH_POPUP:
         await this.showAuthPopupAsync(context);
         break;
+      case Actions.SHOW_CONFIGURABLE_AUTH_POPUP:
+        await this.showConfigurableAuthPopupAsync(context);
+        break;
       case Actions.SHOW_TARGETED_BUBBLE:
         await this.targetedBubbleDemoHandler.showTargetedBubbleAsync(context);
         break;
@@ -78,13 +83,16 @@ export class CommandHandler {
     }
   }
 
+  async showConfigurableAuthPopupAsync(context: TurnContext) {
+    const configurationCard = CardFactory.adaptiveCard(configureAuthPopup());
+    await context.sendActivity({
+      attachments: [configurationCard]
+    });
+  }
+
   async showAuthPopupAsync(context: TurnContext) {
-    const card = CardFactory.adaptiveCard(openAuthCard());
-    // const card = CardFactory.actions([{
-    //   type: "signin",
-    //   title: "Click me for signin",
-    //   value: "https://rlay.feval.ca/auth/"
-    // }])
+    const url = context.activity.value?.url || "https://rlay.feval.ca/authPopup/"
+    const card = CardFactory.adaptiveCard(openAuthCard(url));
     await context.sendActivity({
       attachments: [card]
     });

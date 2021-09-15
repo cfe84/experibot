@@ -154,21 +154,21 @@ export class BotActivityHandler extends TeamsActivityHandler {
     context: TurnContext,
     nextAsync: () => Promise<void>
   ) {
-    this.deps.logger.debug(`Received a simple message`)
     TurnContext.removeRecipientMention(context.activity);
     if (
       !context.activity.text &&
-      (!context.activity.value || !context.activity.value["text"])
+      (!context.activity.value || (!context.activity.value["text"] && !context.activity.value["action"]))
     ) {
       this.deps.logger.error(
-        `Missing "context.activity.text" property in `,
+        `BotActivityHandler.handleMessageAsync: Missing "context.activity.text" property in `,
         context.activity
       );
       return;
     }
-    const text = (context.activity.text || context.activity.value["text"])
+    const text = (context.activity.text || context.activity.value["text"] || context.activity.value["action"])
       .trim()
       .toLowerCase();
+    this.deps.logger.debug(`Received a simple message: ${text}`)
     await this.commandHandler.handleCommand(text, context)
     await nextAsync();
   }

@@ -4,6 +4,7 @@
   <script src="https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js"></script>
   <link rel="stylesheet" type="text/css" href="/styles/msteams-16.css">
   <link rel="stylesheet" type="text/css" href="/styles/custom.css">
+  <script type="module" src="authPopup.js"></script>
   <style>
     body {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -36,25 +37,6 @@
   </div>
   <script>
 
-    const attachCloseButton = () => {
-      const closeBtn = document.getElementById("close");
-      const callbackInput = document.getElementById("input-callback");
-      const pre = document.getElementById("pre-sample")
-      closeBtn.onclick = () => {
-        microsoftTeams.authentication.notifySuccess(callbackInput.value);
-      };
-      callbackInput.onkeyup = () => {
-        const value = callbackInput.value
-        const sample = `microsoftTeams.authentication.notifySuccess("${value}");`
-        pre.innerText = sample
-      }
-    };
-
-
-    microsoftTeams.initialize(() => {
-
-    });
-    attachCloseButton();
   </script>
 </body>
 

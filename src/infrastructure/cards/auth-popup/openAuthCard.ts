@@ -1,4 +1,4 @@
-export function openAuthCard() {
+export function openAuthCard(url: string = "https://rlay.feval.ca/authPopup/") {
   return {
     $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
     type: "AdaptiveCard",
@@ -7,7 +7,7 @@ export function openAuthCard() {
     body: [
       {
         type: "TextBlock",
-        text: `This will open an auth popup`,
+        text: `This will open an auth popup to ${url}`,
         wrap: true,
       },
     ],
@@ -20,7 +20,7 @@ export function openAuthCard() {
           msteams: {
             type: "signin",
             title: "Click me for signin",
-            value: "https://rlay.feval.ca/authPopup/"
+            value: url
           },
           module: "authentication",
         },
