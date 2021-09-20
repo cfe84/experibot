@@ -24,6 +24,7 @@ import { BubbleDemoHandler } from "./botHandlers/BubbleDemoHandler";
 import { TargetedBubbleHandler } from "./botHandlers/TargetedBubbleHandler";
 import { PaymentInMeetingHandler } from "./botHandlers/PaymentInMeetingHandler";
 import { confirmActionCard } from "./cards/confirmActionCard";
+import { WelcomeUserHandler } from "./botHandlers/WelcomeUserHandler";
 
 export interface IDependencies {
   logger: ILogger;
@@ -44,6 +45,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
   private bubbleDemoHandler: BubbleDemoHandler
   private targetedBubbleDemoHandler: TargetedBubbleHandler
   private paymentHandler: PaymentInMeetingHandler
+  private welcomeUserHandler: WelcomeUserHandler
 
   constructor(private deps: IDependencies) {
     super();
@@ -67,7 +69,10 @@ export class BotActivityHandler extends TeamsActivityHandler {
     this.refreshHandler = new RefreshHandler(deps)
     this.authenticationHandler = new AuthenticationHandler(deps)
     this.chainedTaskModuleHandler = new ChainedTaskModulesHandler(deps)
+    this.welcomeUserHandler = new WelcomeUserHandler(deps)
   }
+
+
 
   /**
    * Handles invoke types not currently supported by the teamsActivityHandler,
@@ -195,5 +200,9 @@ export class BotActivityHandler extends TeamsActivityHandler {
     } else {
       return this.messagingExtensionHandler.defaultMessageExtensionSubmitted(context, action)
     }
+  }
+
+  async onConversationUpdateActivity(context: TurnContext): Promise<void> {
+    await this.welcomeUserHandler.handleConversationUpdate(context)
   }
 }

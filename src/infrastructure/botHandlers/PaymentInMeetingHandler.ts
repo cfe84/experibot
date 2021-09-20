@@ -70,7 +70,7 @@ export class PaymentInMeetingHandler {
     let members: TeamsChannelAccount[]
     try {
       members = await TeamsInfo.getMembers(context);
-    } catch (err) {
+    } catch (err: any) {
       if (err.message.indexOf("The bot is not part of the conversation roster") >= 0) {
         this.deps.logger.log("App is not installed. Showing JIT card")
         return this.displayJitInstallCard()
