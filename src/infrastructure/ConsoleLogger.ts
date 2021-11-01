@@ -1,7 +1,8 @@
 import { ILogger } from "../domain/ILogger";
 
 export enum LogLevel {
-  Debug = 0,
+  Verbose = 0,
+  Debug = 1,
   Log = 2,
   Warning = 3,
   Error = 4,
@@ -10,7 +11,12 @@ export enum LogLevel {
 
 export class ConsoleLogger implements ILogger {
   constructor(private level: LogLevel) {
-    this.debug("Loglevel set as debug");
+    this.log(`Loglevel set as ${level}`);
+  }
+  verbose(message: any, ...optionalParams: any[]) {
+    if (this.level <= LogLevel.Debug) {
+      console.log(message, ...optionalParams);
+    }
   }
   debug(message: any, ...optionalParams: any[]) {
     if (this.level <= LogLevel.Debug) {
@@ -27,7 +33,6 @@ export class ConsoleLogger implements ILogger {
       console.warn(message, ...optionalParams);
     }
   }
-
   error(message: any, ...optionalParams: any[]) {
     if (this.level <= LogLevel.Error) {
       console.error(message, ...optionalParams);

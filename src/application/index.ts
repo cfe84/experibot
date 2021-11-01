@@ -15,11 +15,27 @@ if (!process.env.BotId || !process.env.BotPassword) {
   throw Error(`Missing BotId or BotPassword in environment variables`);
 }
 
-const logger = new ConsoleLogger(
-  process.env.LOGLEVEL?.toUpperCase() === "DEBUG"
-    ? LogLevel.Debug
-    : LogLevel.Log
-);
+let logLevel = LogLevel.Log
+
+switch (process.env.LOGLEVEL?.toUpperCase()) {
+  case "DEBUG":
+    logLevel = LogLevel.Debug
+    break
+  case "VERBOSE":
+  case "EXTREME":
+    logLevel = LogLevel.Verbose
+    break
+  case "ERROR":
+  case "ERR":
+    logLevel = LogLevel.Error
+    break
+  case "WARNING":
+  case "WARN":
+    logLevel = LogLevel.Warning
+    break
+}
+
+const logger = new ConsoleLogger(logLevel);
 const authenticator = new AADAuthenticator(
   "437426e6-c3c0-4806-8921-76bcdd4493c9",
   "0b0d52e1-edc0-41f2-87cc-5d2ef153e7b0",

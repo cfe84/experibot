@@ -11,6 +11,7 @@ import { BubbleDemoHandler } from "./BubbleDemoHandler";
 import { PaymentInMeetingHandler } from "./PaymentInMeetingHandler";
 import { TargetedBubbleHandler } from "./TargetedBubbleHandler";
 import { configureAuthPopup } from "../cards/auth-popup/configureAuthPopup";
+import { AuthenticationHandler } from "./AuthenticationInAppHandler";
 
 const Actions: { [key: string]: string } = {
   SIGNIN: "signin",
@@ -36,6 +37,7 @@ export class CommandHandler {
     private activityHandler: ActivityHandler,
     private bubbleDemoHandler: BubbleDemoHandler,
     private targetedBubbleDemoHandler: TargetedBubbleHandler,
+    private authenticationInAppHandler: AuthenticationHandler,
     private paymentHandler: PaymentInMeetingHandler) { }
 
   async handleCommand(command: string, context: TurnContext) {
@@ -78,6 +80,10 @@ export class CommandHandler {
         break
       case Actions.MONITOR:
         await this.monitorAsync(context)
+        break;
+      // case Actions.SIGNIN:
+      //   await this.showSignInAsync(context)
+      //   break
       default:
         await this.helpActivityAsync(context, command);
     }
@@ -89,6 +95,18 @@ export class CommandHandler {
       attachments: [configurationCard]
     });
   }
+
+
+  // async showSignInAsync(context: TurnContext) {
+  //   const nonce = this.deps.identityManager.generateNonce(
+  //     context.activity?.from?.id
+  //   );
+  //   const url = `${process.env.BaseUrl}/auth/index.html?userid=${context.activity?.from?.id}&nonce=${nonce}`
+  //   const card = CardFactory.adaptiveCard(openAuthCard(url));
+  //   await context.sendActivity({
+  //     attachments: [card]
+  //   });
+  // }
 
   async showAuthPopupAsync(context: TurnContext) {
     const url = context.activity.value?.url || "https://rlay.feval.ca/authPopup/"

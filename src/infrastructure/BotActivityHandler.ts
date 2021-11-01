@@ -60,14 +60,15 @@ export class BotActivityHandler extends TeamsActivityHandler {
     this.bubbleDemoHandler = new BubbleDemoHandler()
     this.targetedBubbleDemoHandler = new TargetedBubbleHandler()
     this.paymentHandler = new PaymentInMeetingHandler(deps)
+    this.authenticationHandler = new AuthenticationHandler(deps)
     this.commandHandler = new CommandHandler(deps,
       this.activityHandler,
       this.bubbleDemoHandler,
       this.targetedBubbleDemoHandler,
+      this.authenticationHandler,
       this.paymentHandler)
     this.messagingExtensionHandler = new MessagingExtensionHandler(deps, this.commandHandler)
     this.refreshHandler = new RefreshHandler(deps)
-    this.authenticationHandler = new AuthenticationHandler(deps)
     this.chainedTaskModuleHandler = new ChainedTaskModulesHandler(deps)
     this.welcomeUserHandler = new WelcomeUserHandler(deps)
   }

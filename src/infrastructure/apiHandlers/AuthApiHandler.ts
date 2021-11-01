@@ -8,6 +8,7 @@ export class AuthApiHandler {
   }
 
   handleCompleteAuth(req: Request, res: Response) {
+    console.log(req.body)
     const mapping = req.body as CodeExchange;
     this.deps.identityManager
       .exchangeNonceToIdentityAsync(

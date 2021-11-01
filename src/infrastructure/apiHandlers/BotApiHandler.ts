@@ -33,7 +33,7 @@ export class BotApiHandler {
   handleBotMessages(req: Request, res: Response) {
     try {
       this.adapter.processActivity(req, res, async (context: TurnContext) => {
-        // logger.debug(`Message: `, JSON.stringify(req.body, null, 2));
+        this.deps.logger.verbose(`Message: `, JSON.stringify(req.body, null, 2));
         // Process bot activity
         await this.botActivityHandler.run(context);
       });

@@ -30,11 +30,16 @@ export class IdentityManager {
     if (!userId) {
       throw Error(`Nonce not found: ${nonce}`);
     }
-    const tokens = await this.deps.authenticator.exchangeCodeForTokensAsync(
-      code,
-      callbackUrl
-    );
-    this.identityMapping[userId] = tokens.idToken.payload.email;
+    try {
+      const tokens = await this.deps.authenticator.exchangeCodeForTokensAsync(
+        code,
+        callbackUrl
+      );
+      this.identityMapping[userId] = tokens.idToken.payload.email;
+    } catch (error) {
+      console.error(error)
+    }
+
     return this.identityMapping[userId];
   }
 

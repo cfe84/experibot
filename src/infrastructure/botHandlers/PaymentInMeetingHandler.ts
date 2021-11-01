@@ -118,7 +118,7 @@ export class PaymentInMeetingHandler {
     const card = CardFactory.adaptiveCard(
       paymentRefreshCard(paymentRequestId, [initiatorId, ...userIds])
     );
-    await context.sendActivity({ attachments: [card] });
+    const res = await context.sendActivity({ attachments: [card] });
 
     return {};
   }

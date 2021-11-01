@@ -9,6 +9,7 @@ export class AuthenticationHandler {
     const nonce = this.deps.identityManager.generateNonce(
       context.activity?.from?.id
     );
+    const clientId = process.env["BotId"]
     return {
       task: {
         type: "continue",
@@ -16,7 +17,7 @@ export class AuthenticationHandler {
           title: "This is the task module title",
           height: 500,
           width: "medium",
-          url: `${process.env.BaseUrl}/auth/index.html?userid=${context.activity?.from?.id}&nonce=${nonce}`,
+          url: `${process.env.BaseUrl}/auth/index.html?userid=${context.activity?.from?.id}&nonce=${nonce}&clientId=${clientId}`,
           fallbackUrl: process.env.BaseUrl + "/auth/index.html",
         },
       },

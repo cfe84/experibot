@@ -53,6 +53,20 @@ export function taskModuleCard(count: number) {
           button: "continue",
         },
       },
+      {
+        type: "Action.OpenUrl",
+        title: "Go to bookings",
+        verb: "triggerExtension",
+        "url": "https://teams.microsoft.com/l/entity/fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f/AppointmentsTabfa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f",
+        data: {
+          msteams: {
+            type: "task/fetch",
+          },
+          moduleName: "chained",
+          i: count,
+          button: "continue",
+        },
+      },
     ],
   };
 }

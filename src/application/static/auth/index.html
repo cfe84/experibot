@@ -154,6 +154,7 @@
       const authButtonB2C = document.getElementById("authenticateb2c");
       const auth = (tenantId, clientId) => () => {
         const url = `${window.location.origin}/auth/auth.html?tenantId=${tenantId}&clientId=${clientId}`
+        console.log(queryParameters)
 
         // if (context.hostClientType === "desktop" || context.hostClientType === "web") {
         startAuthenticationForDesktop(url)
@@ -161,7 +162,7 @@
         //   startAuthenticationForMobile(url)
         // }
       };
-      authButton.onclick = auth(context.tid, context.clientId);
+      authButton.onclick = auth(context.tid, queryParameters.clientId);
       authButtonB2C.onclick = auth(
         "437426e6-c3c0-4806-8921-76bcdd4493c9",
         "0b0d52e1-edc0-41f2-87cc-5d2ef153e7b0"
@@ -215,7 +216,7 @@
       userId.innerHTML = queryParameters["userid"]
       tenantId.innerHTML = context.tid
       contextPre.innerHTML = JSON.stringify(context, null, 2)
-      microsoftTeams.teamsfx.TeamsUserCredential.getUserInfo().then((info) => contextPre.innerHTML = JSON.stringify(info, null, 2))
+      microsoftTeams.teamsfx.TeamsUserCredential?.getUserInfo().then((info) => contextPre.innerHTML = JSON.stringify(info, null, 2))
     }
 
     microsoftTeams.initialize(() => {

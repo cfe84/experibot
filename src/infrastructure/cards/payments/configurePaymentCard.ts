@@ -5,7 +5,8 @@ export interface User {
 
 export interface Product {
   id: string,
-  name: string
+  name: string,
+  price: number
 }
 
 export function configurePaymentCard(users: User[], products: Product[]) {
@@ -19,6 +20,16 @@ export function configurePaymentCard(users: User[], products: Product[]) {
   const productChoiceComponent = products.map((product) => ({
     "title": product.name,
     "value": product.id
+  }))
+  const productPriceComponent = products.map((product) => ({
+    "type": "FactSet",
+    "facts": [
+      {
+        "title": "Price",
+        "value": `$${product.price}`
+      }
+    ],
+    "$when": "${root.choice == \"" + product.id + "\"}"
   }))
   return {
     $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
@@ -35,8 +46,10 @@ export function configurePaymentCard(users: User[], products: Product[]) {
         "type": "Input.ChoiceSet",
         id: "productId",
         "choices": productChoiceComponent,
-        placeholder: "Select product"
+        placeholder: "Select product",
+        "$data": "${root.choice}"
       },
+      ...productPriceComponent,
       {
         type: "TextBlock",
         text: `Send payment to`,
