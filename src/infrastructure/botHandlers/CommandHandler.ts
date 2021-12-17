@@ -12,6 +12,7 @@ import { PaymentInMeetingHandler } from "./PaymentInMeetingHandler";
 import { TargetedBubbleHandler } from "./TargetedBubbleHandler";
 import { configureAuthPopup } from "../cards/auth-popup/configureAuthPopup";
 import { AuthenticationHandler } from "./AuthenticationInAppHandler";
+import { ContextProcessor } from "../ContextProcessor";
 
 const Actions: { [key: string]: string } = {
   SIGNIN: "signin",
@@ -166,11 +167,12 @@ export class CommandHandler {
   }
 
   private async showRefreshCardAsync(context: TurnContext) {
-    const member = await TeamsInfo.getMember(context, context.activity.from.id);
+    const contextProcessor = new ContextProcessor(context)
+    const member = await contextProcessor.getCallerMemberAsync()
     const members = await TeamsInfo.getMembers(context);
     const ids = members.map((member) => member.id);
     const card = CardFactory.adaptiveCard(
-      refreshCard("Initial message", member.name, ids)
+      refreshCard("Initial message", member.name, contextProcessor.getPlatform(), ids)
     );
     await context.sendActivity({ attachments: [card] });
   }

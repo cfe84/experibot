@@ -20,9 +20,18 @@ import { getQueryParameters } from "../common/utils.js"
     }
   };
 
+  // Trying to change title to check if it can be forged
+  const attachTitleBtn = () => {
+    const changeTitleBtn = document.getElementById("change-title-btn")
+    changeTitleBtn.onclick = () => {
+      document.title = "Another title"
+    }
+  }
+
   window.onload = () => {
     microsoftTeams.initialize(() => {
     });
     attachCloseButton();
+    attachTitleBtn();
   }
 })()

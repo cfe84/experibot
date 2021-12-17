@@ -1,4 +1,4 @@
-export function refreshCard(date: string, name: string, userIds: string[]) {
+export function refreshCard(date: string, name: string, platform: string, userIds: string[]) {
   return {
     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
     "type": "AdaptiveCard",
@@ -15,7 +15,7 @@ export function refreshCard(date: string, name: string, userIds: string[]) {
     "body": [
       {
         "type": "TextBlock",
-        "text": `Message refreshed at ${date} for ${name}
+        "text": `Message refreshed at ${date} for ${name}. You're on ${platform}
         Refreshing for ${userIds}`,
         "wrap": true
       }
