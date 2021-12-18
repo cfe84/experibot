@@ -6,6 +6,9 @@ export class WelcomeUserHandler {
   constructor(private deps: IDependencies) { }
 
   async handleConversationUpdate(context: TurnContext) {
+    if (context.activity.channelId === "directline") {
+      return
+    }
     const userId = context.activity.from.id
     const tenantId = context.activity.conversation.tenantId || "undefined"
     const member = (await TeamsInfo.getMember(context, userId))
