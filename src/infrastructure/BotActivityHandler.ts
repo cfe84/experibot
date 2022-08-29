@@ -2,6 +2,8 @@ import {
   InvokeResponse,
   MessagingExtensionAction,
   MessagingExtensionActionResponse,
+  TabRequest,
+  TabResponse,
   TaskModuleRequest,
   TaskModuleResponse,
   TurnContext,
@@ -200,6 +202,16 @@ export class BotActivityHandler extends TeamsActivityHandler {
       return this.paymentHandler.handleMessagingExtensionRequest(context, action)
     } else {
       return this.messagingExtensionHandler.defaultMessageExtensionSubmitted(context, action)
+    }
+  }
+
+  protected async handleTeamsTabFetch(context: TurnContext, tabRequest: TabRequest): Promise<TabResponse> {
+    this.deps.logger.debug(`Handle tab fetch: ${tabRequest.tabContext?.tabEntityId}`);
+    return {
+      tab: {
+        type: "continue",
+        value: await this.welcomeUserHandler.handleWelcomeTabFetch(context)
+      } 
     }
   }
 

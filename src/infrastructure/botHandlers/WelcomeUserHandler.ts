@@ -1,10 +1,15 @@
-import { TurnContext, CardFactory, TeamsInfo } from "botbuilder";
+import { TurnContext, CardFactory, TeamsInfo, TabResponseCards } from "botbuilder";
 import { IDependencies } from "../BotActivityHandler";
 import { welcomeCard } from "../cards/welcome/welcomeCard";
 
 export class WelcomeUserHandler {
   constructor(private deps: IDependencies) { }
 
+  /**
+   * Handle when app got installed
+   * @param context 
+   * @returns 
+   */
   async handleConversationUpdate(context: TurnContext) {
     if (context.activity.channelId === "directline") {
       return
@@ -21,5 +26,19 @@ export class WelcomeUserHandler {
     await context.sendActivity({
       attachments: [card]
     });
+  }
+
+  /**
+   * Handle when the welcome tab got fetched
+   * @param context 
+   */
+  async handleWelcomeTabFetch(context: TurnContext): Promise<TabResponseCards> {
+    return {
+      cards: [
+        {
+          card: welcomeCard("Bernard", "Ploup", "Plop")
+        }
+      ]
+    }
   }
 }
