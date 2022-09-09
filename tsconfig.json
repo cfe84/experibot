@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
     "target": "es6",
     "outDir": "dist",
     "lib": [
+      "DOM",
       "es6"
     ],
     "sourceMap": true,
     "rootDir": "src",
     "resolveJsonModule": true,
+    "jsx": "react",
     "strict": true, /* enable all strict type-checking options */
     /* Additional Checks */
     // "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
@@ -17,6 +19,7 @@
   },
   "exclude": [
     "node_modules",
+    "src/frontend",
     "test"
   ]
 }

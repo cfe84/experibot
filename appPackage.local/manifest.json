@@ -77,7 +77,7 @@
   ],
   "configurableTabs": [
     {
-      "configurationUrl": "https://rlay.feval.ca/meetings/sidePanel/configuration.html",
+      "configurationUrl": "https://chfeval-rlay.azurewebsites.net/meetings/sidePanel/configuration.html",
       "canUpdateConfiguration": true,
       "scopes": [
         "team",
@@ -90,7 +90,7 @@
   ],
   "staticTabs": [
     {
-      "contentUrl": "https://rlay.feval.ca:443/appointments/?theme={theme}",
+      "contentUrl": "https://chfeval-rlay.azurewebsites.net:443/appointments/?theme={theme}",
       "entityId": "AppointmentsTab",
       "name": "Appointments",
       "scopes": [
@@ -99,7 +99,15 @@
       ]
     },
     {
-      "contentUrl": "https://rlay.feval.ca:443/auth/?theme={theme}",
+      "contentUrl": "https://chfeval-rlay.azurewebsites.net:443/authenticatedTab/?theme={theme}",
+      "entityId": "AuthenticatedTab",
+      "name": "Native authentication",
+      "scopes": [
+        "personal"
+      ]
+    },
+    {
+      "contentUrl": "https://chfeval-rlay.azurewebsites.net:443/auth/?theme={theme}",
       "entityId": "AuthTab",
       "name": "Auth",
       "scopes": [
@@ -122,6 +130,10 @@
     "localhost:3000",
     "*.ngrok.io",
     "i.imgur.com",
-    "rlay.feval.ca"
-  ]
+    "chfeval-rlay.azurewebsites.net"
+  ],
+  "webApplicationInfo": {
+    "id": "fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f",
+    "resource": "api://chfeval-rlay.azurewebsites.net/fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f"
+  }
 }

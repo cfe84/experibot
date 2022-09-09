@@ -42,3 +42,12 @@ AADClientSecret=[Set the AAD B2C client secret]
 - Zip appManifest and deploy to your tenant
 - Run `npm start`
 
+# Features
+
+## Tab SSO
+
+This is leveraging [SSO for tab app](https://docs.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-overview). It requires:
+- Setup API in your app registration (follow [this doc](https://docs.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-register-aad) all the way through)
+- Update manifest so it points to the right API.
+
+Once this is done, tab will receive an auth token for the app. It needs to be validated for the right audience and issuer and validate the signature. The token contains the AAD object id (`oid` in the claims) that can be matched with the `aadObjectId` in the `from` section of activities received by the bot to reconcile identity.
