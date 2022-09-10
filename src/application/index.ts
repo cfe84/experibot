@@ -9,11 +9,20 @@ import { IDependencies } from "../infrastructure/BotActivityHandler";
 import { LogHandler } from "../infrastructure/apiHandlers/LogHandler";
 import { AuthApiHandler } from "../infrastructure/apiHandlers/AuthApiHandler";
 import { MemoryStore } from "../infrastructure/MemoryStore";
+import { NativeAuthApiHandler } from "../infrastructure/apiHandlers/NativeAuthApiHandler";
+import { TokenValidator } from "../infrastructure/middleware/TokenValidator";
+import { AuthenticationMiddleware } from "../infrastructure/middleware/AuthenticationMiddleware";
 
 require("dotenv").config();
 if (!process.env.BotId || !process.env.BotPassword) {
   throw Error(`Missing BotId or BotPassword in environment variables`);
 }
+if (!process.env.TenantId) {
+  console.warn(`Warning: Missing TenantId in env`);
+}
+const botId = process.env.BotId;
+const tenantId = process.env["TenantId"] || "";
+
 
 let logLevel = LogLevel.Log
 
@@ -41,13 +50,17 @@ const authenticator = new AADAuthenticator(
   "0b0d52e1-edc0-41f2-87cc-5d2ef153e7b0",
   process.env["AADClientSecret"] as string
 );
+
 const identityManager = new IdentityManager({ authenticator });
 const store = new MemoryStore()
 
-const deps: IDependencies = {
-  identityManager,
+const tokenValidator = new TokenValidator(tenantId, botId);
+const authMiddleware = AuthenticationMiddleware(logger, tokenValidator);
 
-  logger
+const deps: any = {
+  identityManager,
+  logger,
+  authMiddleware
 }
 
 const server = express();
@@ -68,3 +81,4 @@ new LogHandler(server)
 new AppointmentHandler(server, { appointmentStore: store, serviceTypeStore: store })
 new BotApiHandler(server, deps)
 new AuthApiHandler(server, deps)
+new NativeAuthApiHandler(server, deps)

@@ -51,3 +51,7 @@ This is leveraging [SSO for tab app](https://docs.microsoft.com/en-us/microsoftt
 - Update manifest so it points to the right API.
 
 Once this is done, tab will receive an auth token for the app. It needs to be validated for the right audience and issuer and validate the signature. The token contains the AAD object id (`oid` in the claims) that can be matched with the `aadObjectId` in the `from` section of activities received by the bot to reconcile identity.
+
+in .env:
+- Set BotId, will be used as the audience
+- Set TenantId, will be used as issuer.
