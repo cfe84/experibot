@@ -55,3 +55,7 @@ Once this is done, tab will receive an auth token for the app. It needs to be va
 in .env:
 - Set BotId, will be used as the audience
 - Set TenantId, will be used as issuer.
+
+- [Frontend part](./src/frontend/authenticatedTab/AuthenticationPage.tsx)
+- [Validate token](./src/infrastructure/middleware/TokenValidator.ts)
+- [Middleware](./src/infrastructure/middleware/AuthenticationMiddleware.ts)
