@@ -11,6 +11,6 @@ export function loadAuthenticatedTaskModule(id: string) {
       return
     }
     
-    reactDom.render(<RecordConfiguration></RecordConfiguration>, element); 
+    reactDom.render(<RecordConfiguration />, element); 
   }
 }

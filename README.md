@@ -62,6 +62,8 @@ in .env:
 
 ## Authentication Bridge
 
+Run using the messaging extension called "Authenticated task module".
+
 Demo of how to bridge authentication between Task Modules using web apps (not adaptive cards), and bots.
 
 The task module uses [SSO for apps](https://docs.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-overview) to retrieve an auth token, and passes that token as authentication to the backend.
