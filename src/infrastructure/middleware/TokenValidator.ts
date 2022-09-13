@@ -44,9 +44,10 @@ export class TokenValidator {
   }
 
   private verifyJwtAsync(token: string, key: string): Promise<boolean> {
+    const parsedToken = parseJwt(token);
     const validationOptions = {
       audience: this.audience,
-      issuer: this.issuer
+      issuer: `https://login.microsoftonline.com/${parsedToken.payload.tid}/v2.0`
     };
     return new Promise((resolve, reject) => {
       jwt.verify(token, key, validationOptions, (err, res) => {

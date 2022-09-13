@@ -59,3 +59,18 @@ in .env:
 - [Frontend part](./src/frontend/authenticatedTab/AuthenticationPage.tsx)
 - [Validate token](./src/infrastructure/middleware/TokenValidator.ts)
 - [Middleware](./src/infrastructure/middleware/AuthenticationMiddleware.ts)
+
+## Authentication Bridge
+
+Demo of how to bridge authentication between Task Modules using web apps (not adaptive cards), and bots.
+
+The task module uses [SSO for apps](https://docs.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-overview) to retrieve an auth token, and passes that token as authentication to the backend.
+
+Backend uses the AAD Object Id from the token claims to reconcile the identity of bot messages, which also includes the AAD Object id in the `activity.from` for authenticated users.
+
+This also demos caching the conversation reference to be able to initiate a card exchange following the task module display.
+
+Contains two main aspects: 
+
+- [Record configuration - the front end part](./src/frontend/authenticatedTaskModule/RecordConfiguration.tsx)
+- [Authentication bridge handler - the backend part](./src/infrastructure/botHandlers/AuthenticationBridgeHandler.ts)

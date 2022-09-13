@@ -12,7 +12,7 @@
     "bns": "npm run build && npm start",
     "start": "node dist/application/index.js",
     "watch": "nodemon ./index.js",
-    "copy-static": "echo Copy static && ncp src/application/static/ dist/application/static/",
+    "copy-static": "echo Copy static && ncp src/frontend/static/ dist/application/static/",
     "build": "echo Build && tsc && npm run copy-static && npm run webpack",
     "clean": "rimraf dist/",
     "rebuild": "npm run clean && npm run build",

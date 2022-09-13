@@ -33,7 +33,8 @@ export function AuthenticationMiddleware(logger: ILogger, tokenValidator: TokenV
     const claims = await tokenValidator.getClaims(token);
     const userInfo: UserInfo = {
       aadObjectId: claims.oid,
-      username: claims.preferred_username
+      username: claims.preferred_username,
+      tenantId: claims.tid
     };
     logger.debug(`[Auth middleware] Validation passed for ${userInfo.username}`);
     (req as any).userInfo = userInfo;

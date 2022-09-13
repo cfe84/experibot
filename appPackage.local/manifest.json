@@ -63,6 +63,16 @@
           "fetchTask": true
         },
         {
+          "id": "demoAuthenticatedTM",
+          "type": "action",
+          "context": [
+            "compose"
+          ],
+          "description": "Command to trigger authenticated task module",
+          "title": "Authenticated task module",
+          "fetchTask": true
+        },
+        {
           "id": "triggerPayment",
           "type": "action",
           "context": [

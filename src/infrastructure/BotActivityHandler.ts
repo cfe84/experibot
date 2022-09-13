@@ -9,6 +9,7 @@ import {
   TurnContext,
 } from "botbuilder-core";
 import {
+  BotAdapter,
   SigninStateVerificationQuery,
   TeamsActivityHandler,
 } from "botbuilder";
@@ -27,15 +28,21 @@ import { TargetedBubbleHandler } from "./botHandlers/TargetedBubbleHandler";
 import { PaymentInMeetingHandler } from "./botHandlers/PaymentInMeetingHandler";
 import { confirmActionCard } from "./cards/confirmActionCard";
 import { WelcomeUserHandler } from "./botHandlers/WelcomeUserHandler";
+import { AuthenticationBridgeHandler } from "./botHandlers/AuthenticationBridgeHandler";
+import { Middleware } from "./middleware/Middleware";
+import { Application } from "express";
 
 export interface IDependencies {
   logger: ILogger;
   identityManager: IdentityManager;
+  botAdapter: BotAdapter;
+  authMiddleware: Middleware;
 }
 
 const INVOKE_REFRESH = "refreshCard";
 const INVOKE_START_ACTIVITY = "startActivity";
 const HANDLER_PAYMENT = "payments"
+const HANDLER_BRIDGE = "authenticationBridge"
 
 export class BotActivityHandler extends TeamsActivityHandler {
   private activityHandler: ActivityHandler
@@ -48,8 +55,9 @@ export class BotActivityHandler extends TeamsActivityHandler {
   private targetedBubbleDemoHandler: TargetedBubbleHandler
   private paymentHandler: PaymentInMeetingHandler
   private welcomeUserHandler: WelcomeUserHandler
+  private authenticationBridgeHandler: AuthenticationBridgeHandler
 
-  constructor(private deps: IDependencies) {
+  constructor(app: Application, private deps: IDependencies) {
     super();
     // Handle messages
     this.onMessage(
@@ -73,6 +81,7 @@ export class BotActivityHandler extends TeamsActivityHandler {
     this.refreshHandler = new RefreshHandler(deps)
     this.chainedTaskModuleHandler = new ChainedTaskModulesHandler(deps)
     this.welcomeUserHandler = new WelcomeUserHandler(deps)
+    this.authenticationBridgeHandler = new AuthenticationBridgeHandler(deps, app)
   }
 
 
@@ -111,6 +120,8 @@ export class BotActivityHandler extends TeamsActivityHandler {
       return await this.activityHandler.handleRefreshAsync(context)
     } else if (context.activity?.value?.action?.data?.handler === HANDLER_PAYMENT) {
       return await this.paymentHandler.handleRefreshAsync(context)
+    } else if (context.activity?.value?.action?.data?.handler === HANDLER_BRIDGE) {
+      return await this.authenticationBridgeHandler.handleRefreshCard(context);
     }
     this.deps.logger.error(`Verb not implemented: ${context.activity.value?.action?.verb}. Activity was:`, JSON.stringify(context.activity, null, 2))
     return {
@@ -189,6 +200,8 @@ export class BotActivityHandler extends TeamsActivityHandler {
       return this.messagingExtensionHandler.showMessageExtension(context, action)
     } else if (action.commandId === "triggerPayment") {
       return this.paymentHandler.handleMessagingExtensionRequest(context, action)
+    } else if (action.commandId === "demoAuthenticatedTM") {
+      return this.authenticationBridgeHandler.showMessageExtension(context, action)
     } else {
       throw Error("Unknown messaging extension command: " + context.activity.value.commandId)
     }

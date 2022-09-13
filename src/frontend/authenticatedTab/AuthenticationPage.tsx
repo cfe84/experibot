@@ -2,6 +2,7 @@ import * as React from "react";
 import { PrimaryButton, DefaultButton, Label, MessageBar, MessageBarType, Stack, Text } from "@fluentui/react";
 import { app, authentication } from "@microsoft/teams-js";
 import { UserInfo } from "../../domain/UserInfo";
+import { callBackend } from "../callBackend";
 
 export function AuthenticationPage() {
   const [token, setToken] = React.useState("");
@@ -19,28 +20,8 @@ export function AuthenticationPage() {
     }
   }
 
-  function getUserInfoFromBackendAsync(token: string): Promise<UserInfo> {
-      return new Promise((resolve, reject) => {
-        const request = new XMLHttpRequest()
-        request.onreadystatechange = function () {
-          if (this.readyState === 4) {
-            try {
-              const contentType = this.getResponseHeader("content-type");
-              if (contentType?.startsWith("application/json")) {
-                const response = JSON.parse(this.responseText) as UserInfo
-                resolve(response)
-              } else {
-                reject(Error(`Unsupported response type: ${contentType}`))
-              }
-            } catch (err) {
-              reject(Error(this.responseText))
-            }
-          }
-        }
-        request.open("GET", `/api/users/me`, true);
-        request.setRequestHeader("Authorization", `Bearer ${token}`);
-        request.send();
-      })
+  async function getUserInfoFromBackendAsync(token: string): Promise<UserInfo> {
+    return callBackend(`/api/users/me`, "GET", undefined, token);
   }
 
   async function validateToken() {
