@@ -13,11 +13,10 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-    // alias: {
-    //   react: path.resolve('./node_modules/react'),
-    // }
+    extensions: ['.tsx', '.ts', '.js']
   },
   mode: "development",
-  plugins: [],
+  optimization: {
+    usedExports: true
+  },
 };

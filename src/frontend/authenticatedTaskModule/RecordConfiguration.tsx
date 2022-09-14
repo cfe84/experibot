@@ -3,6 +3,7 @@ import { PrimaryButton, Label, MessageBar, MessageBarType, Text, TextField, Spin
 import { app, authentication, dialog } from "@microsoft/teams-js";
 import { Record, RecordRequest } from "../../infrastructure/botHandlers/AuthenticationBridgeHandler";
 import { callBackend } from "../callBackend";
+import { getQueryParameters } from "../utils/QueryParameters";
 
 interface ContextInfo {
   chatId: string,
@@ -21,6 +22,10 @@ export function RecordConfiguration() {
   const [error, setError] = React.useState<string>("");
   const [message, setMessage] = React.useState<string>("");
   const [sending, setSending] = React.useState(false);
+  const conversationReference = React.useMemo(() => {
+    const queryParameters = getQueryParameters();
+    return queryParameters["conversationReference"];
+  }, [])
 
   /**
    * Grab stuff from the Teams context:
@@ -28,7 +33,6 @@ export function RecordConfiguration() {
    * - Get chatId from context.
    */
   async function authenticateAsync() {
-    console.log(`Authenticating`)
     await app.initialize();
     setToken(await authentication.getAuthToken());
     const context = await app.getContext();
@@ -52,13 +56,12 @@ export function RecordConfiguration() {
   async function sendRecordAsync() {
     try {
       setSending(true);
-      const record = {
-        chatId: contextInfo?.chatId,
-        tenantId: contextInfo?.tenantId,
-        content: inputValue
-      } as RecordRequest;
+      const record: RecordRequest = {
+        content: inputValue,
+        conversationReference
+      };
       const res = await callBackend<Record>("/api/records", "POST", record, token);
-      setMessage(`Request sent ${res.content} from ${res.requesterId} in ${res.chatId}`);
+      setMessage(`Request sent ${res.content} from ${res.requesterId}`);
       setTimeout(() => dialog.submit(), 2000)
     } catch (err: any) {
       setError(err.message);

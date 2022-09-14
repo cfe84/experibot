@@ -70,7 +70,7 @@ The task module uses [SSO for apps](https://docs.microsoft.com/en-us/microsoftte
 
 Backend uses the AAD Object Id from the token claims to reconcile the identity of bot messages, which also includes the AAD Object id in the `activity.from` for authenticated users.
 
-This also demos caching the conversation reference to be able to initiate a card exchange following the task module display.
+This also demos passing the conversation reference to the webapp and then back to be able to initiate a card exchange following the task module display.
 
 Contains two main aspects: 
 

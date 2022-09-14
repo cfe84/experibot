@@ -17,16 +17,8 @@ export interface Record {
   content: string
 
   /**
-   * The chatId needs to be stored. This is retrieved from the web app in the task module using
-   * Teams javascript client, and it needs to be passed as part of the call to make the link between 
-   * Teams to the web app displayed in task module, and then back from the app to the rest of the
-   * process with cards.
-   */
-  chatId: string
-
-  /**
    * This is required because the process in this example is differentiated between requester
-   * and other "regular" participants in the chat. Similarly to chatId, requesterId can be
+   * and other "regular" participants in the chat. Similarly to requesterId is
    * retrieved from the task module web app using the Teams javascript client.
    * 
    * If the rest of the process is the same for everyone, then the requester ID can be dismissed.
@@ -40,9 +32,8 @@ export interface Record {
  * DTO received in input to initiate the process.
  */
 export interface RecordRequest {
-  chatId: string,
-  tenantId: string,
-  content: string
+  conversationReference: string
+  content: string,
 }
 
 /**
@@ -82,7 +73,7 @@ export class AuthenticationBridgeHandler {
    * Step 1.: display task module.
    * 
    * This is called when showing the message extension. Two things happen:
-   * 1. We save the conversation reference, this is required for later send a message to the chat.
+   * 1. We retrieve and serialize the conversation reference, this is required for later send a message to the chat.
    * 2. Return a task module in response.
    * 
    * @param context 
@@ -94,7 +85,8 @@ export class AuthenticationBridgeHandler {
     action: MessagingExtensionAction
   ): Promise<MessagingExtensionActionResponse> {
     this.deps.logger.debug(`[${HANDLER_NAME}] Received fetch from messaging extension action for AuthenticatedTaskModuleHandler`);
-    this.conversations[context.activity.conversation.id] = TurnContext.getConversationReference(context.activity);
+    const conversationReference = TurnContext.getConversationReference(context.activity);
+    const serializedCR = JSON.stringify(conversationReference);
     this.deps.logger.debug(`[${HANDLER_NAME}] Save conversation '${context.activity.conversation.id}'`);
     return {
       task: {
@@ -103,7 +95,7 @@ export class AuthenticationBridgeHandler {
           title: "This is the configuration title",
           height: 500,
           width: 500,
-          url: `${process.env.BaseUrl}/authenticatedTaskModule/`
+          url: `${process.env.BaseUrl}/authenticatedTaskModule/?conversationReference=${encodeURIComponent(serializedCR)}`
         },
       },
     };
@@ -131,38 +123,39 @@ export class AuthenticationBridgeHandler {
    async postRecords(req: Request, res: Response) {
     const userInfo = (req as any).userInfo as UserInfo;
     const content = req.body as RecordRequest;
+
     const record: Record = {
       id: Math.floor(Math.random() * 100000000).toString(),
-      chatId: content.chatId,
       content: content.content,
       requesterId: userInfo.aadObjectId
     };
     this.records[record.id] = (record);
-    this.deps.logger.debug(`[${HANDLER_NAME}] Received record '${record.content}' for requester '${record.requesterId}' in chat '${record.chatId}'`);
+
+    const conversationReference = JSON.parse(decodeURIComponent(content.conversationReference)) as ConversationReference;
+
+    this.deps.logger.debug(`[${HANDLER_NAME}] Received record '${record.content}' for requester '${record.requesterId}' in chat '${conversationReference.conversation.id}'`);
     res.statusCode = 200;
     res.json(record);
     res.end();
-    await this.sendRefreshCard(record);
+    await this.sendRefreshCard(record, conversationReference);
   }
 
   /**
    * Send the refresh card to the chat.
    * 
-   * 1. retrieve the conversation reference saved when the message extension
-   * 2. use continueConversation to send the refresh card to everyone.
+   * Use the conversation reference saved when the message extension was invoked, and
+   * use continueConversation to send the refresh card to everyone.
    * 
    * @param record 
    */
-  private async sendRefreshCard(record: Record) {
-    const conversationReference = this.conversations[record.chatId];
-    this.deps.logger.debug(`[${HANDLER_NAME}] Retrieved conversation '${conversationReference.conversation?.id}'`);
+  private async sendRefreshCard(record: Record, conversationReference: ConversationReference) {
     const botId = process.env.BotId || "";
     await this.deps.botAdapter.continueConversationAsync(botId, conversationReference, async (context) => {
       const contextProcessor = new ContextProcessor(context);
       const users = await contextProcessor.getMembers();
       const card = CardFactory.adaptiveCard(authBridgeRefreshCard(record.id, users.map(member => member.id)));
       const activity = { attachments: [card] } as Partial<Activity>;
-      this.deps.logger.debug(`[${HANDLER_NAME}] Sending notification to people in conversation ${record.chatId}.`);
+      this.deps.logger.debug(`[${HANDLER_NAME}] Sending notification to people in conversation ${conversationReference.conversation.id}.`);
       await context.sendActivity(activity);
     });
   }
