@@ -1,4 +1,4 @@
-import { CardFactory, MessageFactory, TeamsInfo, TurnContext } from "botbuilder";
+import { BrowserLocalStorage, CardFactory, MessageFactory, TeamsInfo, TurnContext } from "botbuilder";
 import { userInfo } from "node:os";
 import { IDependencies } from "../BotActivityHandler";
 import { helpCard } from "../cards/helpCard";
@@ -13,6 +13,10 @@ import { TargetedBubbleHandler } from "./TargetedBubbleHandler";
 import { configureAuthPopup } from "../cards/auth-popup/configureAuthPopup";
 import { AuthenticationHandler } from "./AuthenticationInAppHandler";
 import { ContextProcessor } from "../ContextProcessor";
+import { inTeamsClientDemoCard } from "../cards/inTeamsClientDemoCard";
+import { UserProcessor } from "../UserProcessor";
+
+const DIFF = "diff";
 
 const Actions: { [key: string]: string } = {
   SIGNIN: "signin",
@@ -27,7 +31,8 @@ const Actions: { [key: string]: string } = {
   CONFIRM_ANONYMOUS_IDENTITY: "confirm identity",
   MEETING_IS_DONE: "meeting is done",
   HELP: "help",
-  MONITOR: "monitor participants"
+  MONITOR: "monitor participants",
+  IN_TEAMS_APP_AC_DEMO: "in teams app ac demo"
 };
 const COMPLETE_ACTIVITY = "complete activity"
 
@@ -81,6 +86,12 @@ export class CommandHandler {
         break
       case Actions.MONITOR:
         await this.monitorAsync(context)
+        break;
+      case Actions.IN_TEAMS_APP_AC_DEMO:
+        await this.inTeamsAppDemoCardAsync(context);
+        break;
+      case DIFF:
+        await this.diff(context);
         break;
       // case Actions.SIGNIN:
       //   await this.showSignInAsync(context)
@@ -180,5 +191,24 @@ export class CommandHandler {
   private async helpActivityAsync(context: TurnContext, text: string) {
     const card = CardFactory.adaptiveCard(helpCard(Actions, text));
     await context.sendActivity({ attachments: [card] });
+  }
+
+  private async inTeamsAppDemoCardAsync(context: TurnContext) {
+    const card = CardFactory.adaptiveCard(inTeamsClientDemoCard());
+    await context.sendActivity({ attachments: [card] });
+  }
+
+  private async diff(context: TurnContext) {
+    const userProcessor = new UserProcessor(process.env.USER_STORE || "users");
+    const team = context.activity.channelData.team.id;
+    const users = await UserProcessor.siphonUsers(context);
+    userProcessor.addExport(users, team);
+    const diff = userProcessor.diffUsers(team);
+    if (diff) {
+      console.log(`Added\n=====\n\n${userProcessor.userListToString(diff.added)}\n\n`)
+      console.log(`Removed\n=====\n\n${userProcessor.userListToString(diff.removed)}\n\n`)
+    } else {
+      console.log(`That's the first export`);
+    }
   }
 }

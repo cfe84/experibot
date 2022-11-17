@@ -14,6 +14,10 @@ export class WelcomeUserHandler {
     if (context.activity.channelId === "directline") {
       return
     }
+    if (process.env["SILENT_INSTALL"] === "true") {
+      this.deps.logger.warn("SILENT_INSTALL is true, no welcome message sent");
+      return
+    }
     const userId = context.activity.from.id
     const tenantId = context.activity.conversation.tenantId || "undefined"
     const member = (await TeamsInfo.getMember(context, userId))
