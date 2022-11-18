@@ -16,7 +16,7 @@ import { ContextProcessor } from "../ContextProcessor";
 import { inTeamsClientDemoCard } from "../cards/inTeamsClientDemoCard";
 import { UserProcessor } from "../UserProcessor";
 
-const DIFF = "diff";
+const SNITCH = "snitch";
 
 const Actions: { [key: string]: string } = {
   SIGNIN: "signin",
@@ -38,6 +38,7 @@ const COMPLETE_ACTIVITY = "complete activity"
 
 export class CommandHandler {
   static Actions = Actions
+  static Snitch = SNITCH
 
   constructor(private deps: IDependencies,
     private activityHandler: ActivityHandler,
@@ -90,8 +91,8 @@ export class CommandHandler {
       case Actions.IN_TEAMS_APP_AC_DEMO:
         await this.inTeamsAppDemoCardAsync(context);
         break;
-      case DIFF:
-        await this.diff(context);
+      case SNITCH:
+        await this.snitch(context);
         break;
       // case Actions.SIGNIN:
       //   await this.showSignInAsync(context)
@@ -198,17 +199,8 @@ export class CommandHandler {
     await context.sendActivity({ attachments: [card] });
   }
 
-  private async diff(context: TurnContext) {
-    const userProcessor = new UserProcessor(process.env.USER_STORE || "users");
-    const team = context.activity.channelData.team.id;
-    const users = await UserProcessor.siphonUsers(context);
-    userProcessor.addExport(users, team);
-    const diff = userProcessor.diffUsers(team);
-    if (diff) {
-      console.log(`Added\n=====\n\n${userProcessor.userListToString(diff.added)}\n\n`)
-      console.log(`Removed\n=====\n\n${userProcessor.userListToString(diff.removed)}\n\n`)
-    } else {
-      console.log(`That's the first export`);
-    }
+  private async snitch(context: TurnContext) {
+    const userProcessor = new UserProcessor(this.deps, process.env.USER_STORE || "users");
+    await userProcessor.processUsers(context);
   }
 }

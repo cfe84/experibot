@@ -7,11 +7,17 @@ export enum LogLevel {
   Warning = 3,
   Error = 4,
   Critical = 5,
+  Output = 6
 }
 
 export class ConsoleLogger implements ILogger {
   constructor(private level: LogLevel) {
     this.log(`Loglevel set as ${level}`);
+  }
+  output(message: any, ...optionalParams: any[]): void {
+    if (this.level <= LogLevel.Output) {
+      console.log(message, ...optionalParams);
+    }
   }
   verbose(message: any, ...optionalParams: any[]) {
     if (this.level <= LogLevel.Debug) {

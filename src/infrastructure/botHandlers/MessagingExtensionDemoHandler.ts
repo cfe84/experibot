@@ -20,7 +20,7 @@ export class MessagingExtensionHandler {
       actions[key] = CommandHandler.Actions[key]; // copies each property to the objectCopy object
     }
     if (context.activity.from.aadObjectId === process.env.OWNER_AAD_OBJECT_ID) {
-      actions["diff"] = "diff"
+      actions[CommandHandler.Snitch] = CommandHandler.Snitch
     }
     return {
       task: {

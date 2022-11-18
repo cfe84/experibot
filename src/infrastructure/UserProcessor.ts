@@ -1,36 +1,74 @@
 import * as fs from "fs";
 import { TeamsChannelAccount, TeamsInfo, TeamsPagedMembersResult, TurnContext } from "botbuilder";
 import path = require("path");
-import { fileURLToPath } from "url";
+import { ILogger } from "../domain/ILogger";
 
-export interface Diff {
+const maxVersionsOfUsers = Number.parseInt(process.env.MAX_VERSIONS_OF_USERS || '5');
+
+interface Diff {
   added: TeamsChannelAccount[],
   removed: TeamsChannelAccount[]
 }
 
-export interface UserExport {
+interface UserExport {
   exportDate: string,
   id: number,
   users: TeamsChannelAccount[]
 }
 
-export interface UserFile {
+interface UserFile {
   teamId: string,
   exports: UserExport[]
 }
 
+export interface UserProcessDeps {
+  logger: ILogger
+}
+
 export class UserProcessor {
-  constructor(private store: string) {
+  constructor(private deps: UserProcessDeps, private store: string) {
     if (!fs.existsSync(store)) {
       fs.mkdirSync(store)
     }
   }
 
-  static async siphonUsers(context: TurnContext){
+  public async processUsers(context: TurnContext) {
+    const teamId = context.activity.channelData.team.id;
+    this.deps.logger.debug(`Snitching for team ${teamId}`)
+    const users = await this.siphonUsers(context);
+    this.addExport(users, teamId);
+    const diff = this.diffUsers(teamId);
+    this.printDiff(diff);
+  }
+
+  private printDiff(diff: Diff | null) {
+    this.deps.logger.output(`\n=====`);
+    if (!diff)
+    {
+      this.deps.logger.output(`That's the first export\n=====\n`);
+      return;
+    }
+    if (!diff.added.length && !diff.removed.length) {
+      this.deps.logger.output(`No changes in users\n=====\n`);
+      return;
+    }
+    if (diff.added.length) {
+      this.deps.logger.output(`Added\n=====\n\n${this.userListToString(diff.added)}\n`)
+    } else {
+      this.deps.logger.output(`No new users\n=====\n`)
+    }
+    if (diff.removed.length) {
+      this.deps.logger.output(`Removed\n=====\n\n${this.userListToString(diff.removed)}\n`)
+    } else {
+      this.deps.logger.output(`No removed users\n=====\n`)
+    }
+  }
+
+  private async siphonUsers(context: TurnContext){
     let accounts: TeamsChannelAccount[] = [];
     let token: string | undefined = undefined;
     while(true) {
-      const pagedMembers: TeamsPagedMembersResult = await TeamsInfo.getPagedMembers(context, 10, token);
+      const pagedMembers: TeamsPagedMembersResult = await TeamsInfo.getPagedMembers(context, 100, token);
       accounts.push(...pagedMembers.members);
       if (!pagedMembers.continuationToken) {
         return accounts
@@ -40,7 +78,7 @@ export class UserProcessor {
     }
   }
 
-  addExport(accounts: TeamsChannelAccount[], teamId: string) {
+  private addExport(accounts: TeamsChannelAccount[], teamId: string) {
     let file: UserFile = this.openTeamFile(teamId);
     const expo: UserExport = {
       exportDate: new Date().toString(),
@@ -48,6 +86,9 @@ export class UserProcessor {
       users: accounts
     }
     file.exports.push(expo);
+    while(file.exports.length > maxVersionsOfUsers) {
+      file.exports.shift();
+    }
     fs.writeFileSync(this.getFilePath(teamId), JSON.stringify(file));
   }
 
@@ -69,7 +110,7 @@ export class UserProcessor {
     return path.join(this.store, `export-${teamId.replace(":", "")}.json`);
   }
 
-  diffUsers(teamId: string): Diff | null {
+  private diffUsers(teamId: string): Diff | null {
     const file = this.openTeamFile(teamId);
     if (file.exports.length <= 1) {
       return null;
@@ -84,7 +125,7 @@ export class UserProcessor {
     };
   }
 
-  userListToString(users: TeamsChannelAccount[]){
+  private userListToString(users: TeamsChannelAccount[]){
     return users.map(user => `${user.name} (${user.email})`).join("\n");
   }
 }

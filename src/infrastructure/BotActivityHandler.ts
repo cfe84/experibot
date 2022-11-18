@@ -229,6 +229,6 @@ export class BotActivityHandler extends TeamsActivityHandler {
   }
 
   async onConversationUpdateActivity(context: TurnContext): Promise<void> {
-    await this.welcomeUserHandler.handleConversationUpdate(context)
+    await this.welcomeUserHandler.handleConversationUpdate(context);
   }
 }
