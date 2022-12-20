@@ -23,7 +23,9 @@
   },
   "dependencies": {
     "@fluentui/react": "^8.94.3",
-    "@microsoft/teams-js": "^2.3.0",
+    "@microsoft/live-share": "^1.0.0-preview.4",
+    "@microsoft/live-share-canvas": "^1.0.0-preview.4",
+    "@microsoft/teams-js": "^2.6.1",
     "botbuilder": "^4.12.0",
     "botbuilder-dialogs": "^4.13.1",
     "dotenv": "^8.0.0",
@@ -32,7 +34,8 @@
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.1.4",
     "node-fetch": "^2.6.1",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "webpack-bundle-analyzer": "^4.6.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.11",

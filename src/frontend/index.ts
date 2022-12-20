@@ -1,9 +1,14 @@
 import {loadAuthenticatedTab} from "./authenticatedTab/index";
 import { loadAuthenticatedTaskModule } from "./authenticatedTaskModule";
+import { loadLiveSharePanel, loadLiveShareStage } from "./liveShare";
+import { loadConfigurationPage } from "./sidePanel";
 
 const features: {[featureName: string]: any} = {
   loadAuthenticatedTab,
-  loadAuthenticatedTaskModule
+  loadAuthenticatedTaskModule,
+  loadConfigurationPage,
+  loadLiveSharePanel,
+  loadLiveShareStage,
 };
 
 Object.keys(features).forEach(featureName => {

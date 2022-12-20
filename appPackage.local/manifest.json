@@ -94,7 +94,8 @@
         "groupchat"
       ],
       "context": [
-        "meetingSidePanel"
+        "meetingSidePanel",
+        "meetingStage"
       ]
     }
   ],
@@ -145,5 +146,27 @@
   "webApplicationInfo": {
     "id": "fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f",
     "resource": "api://chfeval-rlay.azurewebsites.net/fa3e49b3-5bf1-46ea-bfc0-3e2fd370ed7f"
+  },
+  "authorization": {
+    "permissions": {
+      "resourceSpecific": [
+        {
+          "name": "LiveShareSession.ReadWrite.Chat",
+          "type": "Delegated"
+        },
+        {
+          "name": "LiveShareSession.ReadWrite.Group",
+          "type": "Delegated"
+        },
+        {
+          "name": "MeetingStage.Write.Chat",
+          "type": "Delegated"
+        },
+        {
+          "name": "ChannelMeetingStage.Write.Group",
+          "type": "Delegated"
+        }
+      ]
+    }
   }
 }
