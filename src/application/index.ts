@@ -12,7 +12,6 @@ import { MemoryStore } from "../infrastructure/MemoryStore";
 import { NativeAuthApiHandler } from "../infrastructure/apiHandlers/NativeAuthApiHandler";
 import { TokenValidator } from "../infrastructure/middleware/TokenValidator";
 import { AuthenticationMiddleware } from "../infrastructure/middleware/AuthenticationMiddleware";
-import { MineSweeperApiHandler } from "../infrastructure/apiHandlers/MineSweeperApiHandler";
 
 require("dotenv").config();
 if (!process.env.BotId || !process.env.BotPassword) {
@@ -83,4 +82,3 @@ new AppointmentHandler(server, { appointmentStore: store, serviceTypeStore: stor
 new BotApiHandler(server, deps)
 new AuthApiHandler(server, deps)
 new NativeAuthApiHandler(server, deps)
-new MineSweeperApiHandler(server, deps)

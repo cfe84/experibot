@@ -1,9 +1,6 @@
 import * as React from "react"
 import { SharedMap } from "fluid-framework";
-
-const styles = {
-  
-}
+import { MineSweeperConsts } from "./MineSweeperConsts";
 
 export interface CellProps {
   displayed: boolean,
@@ -14,12 +11,8 @@ export interface CellProps {
   hasFlag: boolean,
   count: number
 }
-const DISPLAYED_KEY = "displayed";
-const VALUE_KEY = "value";
-const FLAG_KEY = "flag";
 const LOOSER_KEY = "looser";
 const BOMB = -1;
-const FLAG = -2;
 
 export function Cell(props: CellProps) {
   const [ isDisplayed, setDisplayed ] = React.useState(props.displayed);
@@ -27,9 +20,9 @@ export function Cell(props: CellProps) {
   const [ count, setCount ] = React.useState(props.count);
   const [ hasFlag, setHasFlag ] = React.useState(props.hasFlag);
 
-  const displayedKey = React.useMemo(() => `${DISPLAYED_KEY}-${props.row}-${props.col}`, [])
-  const valueKey = React.useMemo(() => `${VALUE_KEY}-${props.row}-${props.col}`, [])
-  const flagKey = React.useMemo(() => `${FLAG_KEY}-${props.row}-${props.col}`, [])
+  const displayedKey = React.useMemo(() => MineSweeperConsts.displayedKey(props.row, props.col), [])
+  const valueKey = React.useMemo(() => MineSweeperConsts.valueKey(props.row, props.col), [])
+  const flagKey = React.useMemo(() => MineSweeperConsts.flagKey(props.row, props.col), [])
   const color = React.useMemo(() => {
     const colors = ["#ccf1ff", "#e0d7ff", "#ffcce1", "#d7eeff", "#faffc7"];
     return colors[Math.floor(Math.random() * colors.length)]
@@ -38,7 +31,7 @@ export function Cell(props: CellProps) {
   React.useEffect(() => {
     props.map.on("valueChanged", (val, isLocal) => {
       if (!isLocal && val.key === displayedKey){
-        setDisplayed(props.map.get(displayedKey) === `${true}`);
+        setDisplayed(props.map.get(displayedKey) as boolean);
       }
       if (!isLocal && val.key === valueKey){
         const value = Number.parseInt(props.map.get(valueKey) || "0");
@@ -49,7 +42,7 @@ export function Cell(props: CellProps) {
         }
       }
       if (!isLocal && val.key === flagKey) {
-        setHasFlag(props.map.get(flagKey) === `${true}`)
+        setHasFlag(props.map.get(flagKey) === true)
       }
     });
   }, [setDisplayed, setCount, setHasBomb]);
@@ -57,13 +50,13 @@ export function Cell(props: CellProps) {
   function onClick(ev: React.MouseEvent<HTMLDivElement>) {
     if (ev.button === 0) { // left click
       setDisplayed(true);
-      props.map.set(displayedKey, `${true}`);
+      props.map.set(displayedKey, true);
       if (hasBomb) {
-        props.map.set(LOOSER_KEY, `${true}`);
+        props.map.set(LOOSER_KEY, true);
       }
     } else { // right click
       console.log(`Right click`);
-      props.map.set(flagKey, `${!hasFlag}`);
+      props.map.set(flagKey, !hasFlag);
       setHasFlag(!hasFlag);
       ev.preventDefault();
     }

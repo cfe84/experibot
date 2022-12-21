@@ -4,9 +4,10 @@ import { app, LiveShareHost } from "@microsoft/teams-js";
 import { SharedString, SharedMap } from "fluid-framework";
 import { Cell } from "./Cell";
 // yuk...
-import { Board } from "../../infrastructure/apiHandlers/MineSweeperApiHandler"
+import { Board, generateBoard } from "./MineSweeperBoard";
 
 import * as React from "react";
+import { MineSweeperConsts } from "./MineSweeperConsts";
 
 const styles = {
   default: {
@@ -17,26 +18,27 @@ const styles = {
   }
 }
 
-async function getBoardAsync(): Promise<Board> {
-  const terms = window.location.search.substring(1).split("&");
-  const queryParams: Record<string, string | boolean> = {};
-  terms.forEach(term => {
-    const idx = term.indexOf("=");
-    if (idx > 0) {
-      const param = term.substring(0, idx);
-      const value = term.substring(idx + 1);
-      queryParams[param] = value
-    } else {
-      queryParams[term] = true;
-    }
-  });
 
-  const sessionId = queryParams["sessionId"] as string;
-  const res = await fetch(`/api/minesweeper/sessions/${sessionId}`);
-  if (res.status >= 400) {
-    throw Error("Bad response");
+const width = 25;
+const height = 20;
+const mines = Math.floor(width * height * .1);
+
+const BOARD_KEY = "board";
+
+function getBoard(map: SharedMap): Board {
+  let board = map.get(BOARD_KEY)
+  if (!board) {
+    const grid = generateBoard(width, height, mines);
+    board = {
+      grid,
+      size: {
+        width,
+        height
+      },
+      mines
+    }
+    map.set(BOARD_KEY, board);
   }
-  const board = await res.json() as Board;
   return board;
 }
 
@@ -52,7 +54,9 @@ export function LiveShareStage() {
       cells.push(row);
       for (let c = 0; c < board.size.width; c++) {
         const val = board.grid[r][c];
-        row.push(<Cell count={val} displayed={false} hasBomb={val < 0} key={r * board.size.height + c} row={r} col={c} map={map} hasFlag={false}></Cell>);
+        const displayed = map.get(MineSweeperConsts.displayedKey(r, c)) === true;
+        const hasFlag = map.get(MineSweeperConsts.flagKey(r, c)) === true;
+        row.push(<Cell count={val} displayed={displayed} hasBomb={val < 0} key={r * board.size.height + c} row={r} col={c} map={map} hasFlag={hasFlag}></Cell>);
       }
     }
     return cells;
@@ -73,9 +77,9 @@ export function LiveShareStage() {
   async function init() {
     console.log(`Initializing stage`);
     await app.initialize();
-    const board = await getBoardAsync();
     const container = await joinContainer();
     const map = container.initialObjects.val as SharedMap;
+    const board: Board = getBoard(map);
     const cells = createCells(map, board);
     setCells(cells);
 

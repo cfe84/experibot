@@ -15,7 +15,6 @@ async function load(id: string) {
 
   // Join the Fluid container
   await app.initialize();
-
 }
 
 // ... ready to start app sync logic

@@ -1,15 +1,15 @@
-import { Application, Request, Response } from "express";
-import { ILogger } from "../../domain/ILogger";
 
-export interface IMineSweeperDependencies {
-  logger: ILogger;
+export type Grid = number[][];
+export interface Board {
+  grid: Grid,
+  size: {
+    width: number,
+    height: number,
+  },
+  mines: number
 }
 
-const width = 25;
-const height = 20;
-const mines = Math.floor(width * height * .1);
-
-function generateBoard(width: number, height: number, mines: number) {
+export function generateBoard(width: number, height: number, mines: number) {
   if (mines > width * height) {
     mines = width * height;
   }
@@ -54,43 +54,4 @@ function generateBoard(width: number, height: number, mines: number) {
     }
   }
   return board;
-}
-
-export type Grid = number[][];
-export interface Board {
-  grid: Grid,
-  size: {
-    width: number,
-    height: number,
-  },
-  mines: number
-}
-
-export class MineSweeperApiHandler {
-  private boards: Record<string, Board> = {}
-
-  constructor(server: Application, private deps: IMineSweeperDependencies) {
-    server.get("/api/minesweeper/sessions/:sessionId", this.getSession.bind(this));
-  }
-
-  getSession(req: Request, res: Response) {
-    const sessionId = req.params.sessionId;
-    let board = this.boards[sessionId];
-    if (!board) {
-      const grid = generateBoard(width, height, mines);
-      board = {
-        grid,
-        size: {
-          width,
-          height
-        },
-        mines
-      }
-      this.boards[sessionId] = board;
-    }
-    res.statusCode = 200;
-    res.json(board);
-    res.end();
-  }
-
 }
