@@ -1,27 +1,38 @@
-import { Stack, TextField } from "@fluentui/react";
+import { DefaultButton, Spinner, Stack, TextField } from "@fluentui/react";
 import { LiveShareClient } from "@microsoft/live-share";
 import { app, LiveShareHost } from "@microsoft/teams-js";
 import { SharedString, SharedMap } from "fluid-framework";
+import { Cell } from "./Cell";
 
 import * as React from "react";
 
 const styles = {
   default: {
     color: "white"
+  },
+  input: {
+    width: "300px",
   }
 }
 
 const VAL_KEY = "val";
+const width = 25;
+const height = 25;
 
 export function LiveShareStage() {
-  const [ name, setName ] = React.useState("");
-  const [ map, setMap ] = React.useState<SharedMap | null>(null);
+  const [ cells, setCells ] = React.useState<JSX.Element[][]>([]);
+  const [ name, setName ] = React.useState<string>("");
 
-  function changeName(name: string) {
-    setName(name);
-    if (map) {
-      map.set(VAL_KEY, name);
+  function createCells(map: SharedMap) {
+    const cells: JSX.Element[][] = [];
+    for (let r = 0; r < height; r++) {
+      const row: JSX.Element[] = [];
+      cells.push(row);
+      for (let c = 0; c < width; c++) {
+        row.push(<Cell color="black" row={r} col={c} map={map}></Cell>);
+      }
     }
+    return cells;
   }
 
   async function joinContainer() {
@@ -41,22 +52,23 @@ export function LiveShareStage() {
     await app.initialize();
     const container = await joinContainer();
     const map = container.initialObjects.val as SharedMap;
-    setMap(map);
-    map.on("valueChanged", (val, isLocal, target) => {
-      if (!isLocal) {
-        setName(map.get(VAL_KEY) as string);        
-      }
-    });
+    const cells = createCells(map);
+    setCells(cells);
+
+    const context = await app.getContext();
+    setName(context.user?.displayName || "UNKNOWN");
   }
 
   React.useEffect(() => {
     init().then();
-  }, [name])
+  }, [cells])
 
   return <div style={styles.default}>
     <Stack>
-      <Stack.Item align="center">And we're live {name}</Stack.Item>
-      <TextField onChange={(_, val) => changeName(val || "")} value={name}></TextField>
+      <Stack.Item align="center"><h1>{name}</h1></Stack.Item>
+      <Stack.Item align="center">
+        { cells.length ? cells.map(row => <div>{...row}</div>) : <Spinner label="Loading..." /> }
+      </Stack.Item>
     </Stack>
   </div>
 }

@@ -11,7 +11,7 @@
   "scripts": {
     "bns": "npm run build && npm start",
     "start": "node dist/application/index.js",
-    "watch": "nodemon ./index.js",
+    "watch": "npm-watch",
     "copy-static": "echo Copy static && ncp src/frontend/static/ dist/application/static/",
     "build": "echo Build && tsc && npm run copy-static && npm run webpack",
     "clean": "rimraf dist/",
@@ -20,6 +20,19 @@
     "test": "mocha --require ts-node/register ./test/*.test.ts",
     "test-js": "mocha ./test/*.test.js",
     "webpack": "echo 'Webpack' && webpack"
+  },
+  "watch": {
+    "bns": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": [
+        "ts",
+        "tsx",
+        "js",
+        "html"
+      ]
+    }
   },
   "dependencies": {
     "@fluentui/react": "^8.94.3",
@@ -49,6 +62,7 @@
     "@types/uuid": "^8.3.0",
     "botframework-directlinejs": "^0.15.0",
     "mocha": "^8.3.2",
+    "npm-watch": "^0.11.0",
     "ncp": "^2.0.0",
     "react": "<18.0.0",
     "react-dom": "<18.0.0",

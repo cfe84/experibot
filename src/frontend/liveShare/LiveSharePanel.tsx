@@ -16,8 +16,8 @@ export function LiveSharePanel() {
       }
     }, `${window.location.origin}/meetings/liveShare/stage.html?theme={theme}` );
   }
-  return <div style={styles.default}>
-    <Text>Start live share</Text>
+  return <div>
+    <Text style={styles.default}>Start live share</Text><br/>
     <DefaultButton onClick={share}>Share to stage</DefaultButton>
   </div>
 }
