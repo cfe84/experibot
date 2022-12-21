@@ -61,7 +61,7 @@
     "@types/should": "^13.0.0",
     "@types/uuid": "^8.3.0",
     "botframework-directlinejs": "^0.15.0",
-    "mocha": "^8.3.2",
+    "mocha": "^10.2.0",
     "ncp": "^2.0.0",
     "npm-watch": "^0.11.0",
     "react": "<18.0.0",
