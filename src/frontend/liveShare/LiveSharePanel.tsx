@@ -18,6 +18,6 @@ export function LiveSharePanel() {
   }
   return <div>
     <Text style={styles.default}>Start live share</Text><br/>
-    <DefaultButton onClick={share}>Share to stage</DefaultButton>
+    <DefaultButton onClick={share}>Launch mine sweeper</DefaultButton>
   </div>
 }
