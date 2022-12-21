@@ -3,6 +3,8 @@ import { LiveShareClient } from "@microsoft/live-share";
 import { app, LiveShareHost } from "@microsoft/teams-js";
 import { SharedString, SharedMap } from "fluid-framework";
 import { Cell } from "./Cell";
+// yuk...
+import { Board } from "../../infrastructure/apiHandlers/MineSweeperApiHandler"
 
 import * as React from "react";
 
@@ -15,55 +17,26 @@ const styles = {
   }
 }
 
-const VAL_KEY = "val";
-const width = 25;
-const height = 20;
-const mines = Math.floor(width * height * .1);
-
-function generateBoard(mines: number) {
-  if (mines > width * height) {
-    mines = width * height;
-  }
-  const board: number[][] = [];
-  for (let row = 0; row < height; row++) {
-    const r: number[] = [];
-    board.push(r);
-    for (let col = 0; col < width; col++) {
-      r.push(0);
+async function getBoardAsync(): Promise<Board> {
+  const terms = window.location.search.substring(1).split("&");
+  const queryParams: Record<string, string | boolean> = {};
+  terms.forEach(term => {
+    const idx = term.indexOf("=");
+    if (idx > 0) {
+      const param = term.substring(0, idx);
+      const value = term.substring(idx + 1);
+      queryParams[param] = value
+    } else {
+      queryParams[term] = true;
     }
-  }
+  });
 
-  for (let i = 0; i < mines; i++) {
-    while(true) {
-      const row = Math.floor(Math.random() * height);
-      const col = Math.floor(Math.random() * width);
-      if (!board[row][col]) {
-        board[row][col] = -1;
-        break;
-      }
-    }
+  const sessionId = queryParams["sessionId"] as string;
+  const res = await fetch(`/api/minesweeper/sessions/${sessionId}`);
+  if (res.status >= 400) {
+    throw Error("Bad response");
   }
-
-  for (let row = 0; row < height; row++) {
-    for (let col = 0; col < width; col++) {
-      if (board[row][col] === -1) {
-        continue;
-      }
-      const count = [-1, 0, 1].reduce((curr, r) => curr + [-1, 0, 1].reduce((curr, c) => {
-        if (c === 0 && r === 0) {
-          return curr
-        }
-        const colBeingChecked = c + col;
-        const rowBeingChecked = r + row;
-        if (colBeingChecked < 0 || colBeingChecked >= width || rowBeingChecked < 0 || rowBeingChecked >= height) {
-          return curr;
-        }
-        const hasBomb = board[rowBeingChecked][colBeingChecked] === -1;
-        return hasBomb ? curr + 1 : curr;
-      }, 0), 0);
-      board[row][col] = count;
-    }
-  }
+  const board = await res.json() as Board;
   return board;
 }
 
@@ -71,16 +44,15 @@ export function LiveShareStage() {
   const [ cells, setCells ] = React.useState<JSX.Element[][]>([]);
   const [ name, setName ] = React.useState<string>("");
   const [ looser, setLooser ] = React.useState(false);
-  const board = React.useMemo(() => generateBoard(mines), []);
 
-  function createCells(map: SharedMap) {
+  function createCells(map: SharedMap, board: Board) {
     const cells: JSX.Element[][] = [];
-    for (let r = 0; r < height; r++) {
+    for (let r = 0; r < board.size.height; r++) {
       const row: JSX.Element[] = [];
       cells.push(row);
-      for (let c = 0; c < width; c++) {
-        const val = board[r][c];
-        row.push(<Cell count={val} displayed={false} hasBomb={val < 0} key={r * height + c} row={r} col={c} map={map} hasFlag={false}></Cell>);
+      for (let c = 0; c < board.size.width; c++) {
+        const val = board.grid[r][c];
+        row.push(<Cell count={val} displayed={false} hasBomb={val < 0} key={r * board.size.height + c} row={r} col={c} map={map} hasFlag={false}></Cell>);
       }
     }
     return cells;
@@ -101,9 +73,10 @@ export function LiveShareStage() {
   async function init() {
     console.log(`Initializing stage`);
     await app.initialize();
+    const board = await getBoardAsync();
     const container = await joinContainer();
     const map = container.initialObjects.val as SharedMap;
-    const cells = createCells(map);
+    const cells = createCells(map, board);
     setCells(cells);
 
     map.on("valueChanged", (val, isLocal) => {
